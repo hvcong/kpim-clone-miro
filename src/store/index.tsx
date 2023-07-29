@@ -1,6 +1,6 @@
-import authApi from '@/api/authApi';
-import { AxiosResponse } from 'axios';
-import { create } from 'zustand';
+import authApi from "@/api/authApi";
+import { AxiosResponse } from "axios";
+import { create } from "zustand";
 
 interface User {
   id: number;

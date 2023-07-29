@@ -2,19 +2,27 @@ import { create } from "zustand";
 
 type PaperStateType = {
   scale: number;
+  pointScale: {
+    x: number;
+    y: number;
+  };
   canvas: fabric.Canvas | null;
 
-  setScale: (scale: number) => void;
-  setCanvas: (canvas: fabric.Canvas) => void;
+  setScale: (scale: number, x: number, y: number) => void;
+  setCanvas: (canvas: fabric.Canvas | null) => void;
 };
 
 const usePaperStore = create<PaperStateType>((set) => ({
-  scale: 100,
+  scale: 1,
   canvas: null,
-  setScale: (scale) => {
-    set({ scale: scale });
+  pointScale: {
+    x: 0,
+    y: 0,
   },
-  setCanvas: (canvas: fabric.Canvas) => {
+  setScale: (scale, x, y) => {
+    set({ scale: scale, pointScale: { x, y } });
+  },
+  setCanvas: (canvas: fabric.Canvas | null) => {
     set({
       canvas,
     });
