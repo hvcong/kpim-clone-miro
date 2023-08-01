@@ -14,7 +14,9 @@ export default function Canvas({}: Props) {
     if (canvas) {
       document.getElementsByTagName("canvas")[2].style.display = "none";
       // canvas.isDrawingMode = true;
-      // handleScale();
+      handleScale();
+
+      handleAddedNewObject();
 
       // event delete by delete key
       document.addEventListener("keydown", deleteObjByKeyBoard);
@@ -25,7 +27,7 @@ export default function Canvas({}: Props) {
         canvas.off("mouse:down");
         canvas.off("mouse:up");
         canvas.off("mouse:move");
-        document.removeEventListener;
+        canvas.off("object:added");
       }
     };
   }, [canvas]);
@@ -43,6 +45,15 @@ export default function Canvas({}: Props) {
       zoom = Math.round(zoom * 100) / 100;
 
       setScale(zoom, opt.e.offsetX, opt.e.offsetY);
+    });
+  }
+
+  function handleAddedNewObject() {
+    if (!canvas) return;
+
+    canvas.on("object:added", (e) => {
+      console.log(JSON.stringify(e.target?.toDatalessObject()));
+      alert("added");
     });
   }
 
@@ -67,7 +78,7 @@ export default function Canvas({}: Props) {
   return (
     <>
       <div className='absolute z-10 flex space-x-2'>
-        {/* <div
+        <div
           className='bg-red-300 cursor-pointer p-2 m-1'
           onClick={(e) => {
             if (canvas) {
@@ -93,7 +104,25 @@ export default function Canvas({}: Props) {
           }}
         >
           add rect
-        </div> */}
+        </div>
+        <div
+          className='bg-red-300 cursor-pointer p-2 m-1'
+          onClick={(e) => {
+            if (canvas) {
+            }
+          }}
+        >
+          save
+        </div>
+        <div
+          className='bg-red-300 cursor-pointer p-2 m-1'
+          onClick={(e) => {
+            if (canvas) {
+            }
+          }}
+        >
+          restore
+        </div>
       </div>
 
       <canvas id='canvas' className='relative'></canvas>

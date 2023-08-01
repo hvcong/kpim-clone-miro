@@ -14,6 +14,7 @@ type PaperStateType = {
     y: number;
   };
   canvas: fabric.Canvas | null;
+  drawnObjs: [];
   showPaperDetailModal: boolean;
 
   setScale: (scale: number, x: number, y: number) => void;
@@ -31,8 +32,9 @@ const usePaperStore = create<PaperStateType>((set) => ({
     x: 0,
     y: 0,
   },
-  rightSideBarType: "comment",
-  leftSideBarType: "frame",
+  drawnObjs: [],
+  rightSideBarType: "",
+  leftSideBarType: "",
   showCursorPartner: false,
   showPaperDetailModal: false,
   setScale: (scale, x, y) => {
