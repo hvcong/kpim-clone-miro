@@ -250,7 +250,7 @@ const Auth = () => {
             <button
               type='submit'
               disabled={isLoading}
-              className='h-12 flex w-full  justify-center items-center bg-blue-500 py-2 text-white rounded-sm transition-all hover:bg-blue-600'
+              className='h-12 flex w-full  justify-center items-center bg-blue-600 py-2 text-white rounded-sm transition-all hover:bg-blue-700'
             >
               {isLoading ? (
                 <svg

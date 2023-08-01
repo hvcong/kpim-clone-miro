@@ -14,7 +14,7 @@ export default function Canvas({}: Props) {
     if (canvas) {
       document.getElementsByTagName("canvas")[2].style.display = "none";
       // canvas.isDrawingMode = true;
-      handleScale();
+      // handleScale();
 
       // event delete by delete key
       document.addEventListener("keydown", deleteObjByKeyBoard);

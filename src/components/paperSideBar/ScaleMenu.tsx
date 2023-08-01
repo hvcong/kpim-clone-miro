@@ -7,7 +7,7 @@ export default function ScaleMenu({}: Props) {
   const { scale, setScale, canvas } = usePaperStore();
 
   return (
-    <div className='absolute flex right-2 bottom-2 bg-white rounded-md shadow-lg'>
+    <div className=' flex bg-white rounded-md shadow-lg'>
       <div className='ct-menu-item'>
         <svg
           xmlns='http://www.w3.org/2000/svg'

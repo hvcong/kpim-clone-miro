@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { fabric } from "fabric";
 import useToolStore from "@/store/tool_store";
 import ShapePopup from "./ShapePopup";
+import PenPopup from "./PenPopup";
 
 type Props = {};
 
@@ -30,7 +31,16 @@ export default function ToolList({}: Props) {
       }
 
       if (tool === "text") {
+        canvas.getObjects().map((obj) => {
+          obj.selectable = false;
+          obj.hoverCursor = "text";
+        });
+
+        canvas.selection = false;
+        canvas.discardActiveObject();
         canvas.defaultCursor = "text";
+        canvas.requestRenderAll();
+        handleAddText();
       }
 
       if (tool === "shape") {
@@ -183,11 +193,14 @@ export default function ToolList({}: Props) {
     });
   }
 
+  function handleAddText() {}
+
   return (
     <div className='bg-white flex flex-col rounded-md shadow-lg'>
       <div
         onClick={() => {
           setTool("default");
+          setShowPopupKey("");
         }}
         className={`ct-menu-item ${tool === "default" && "active"}`}
       >
@@ -228,10 +241,12 @@ export default function ToolList({}: Props) {
       </div>
       {/* pen */}
       <div
-        onClick={() => {
+        onClick={(e) => {
           setTool("pen");
+          setShowPopupKey("pen");
+          e.stopPropagation();
         }}
-        className={`ct-menu-item ${tool === "pen" && "active "}`}
+        className={`relative ct-menu-item ${tool === "pen" && "active "}`}
       >
         <svg
           className='ct-menu-icon '
@@ -248,12 +263,19 @@ export default function ToolList({}: Props) {
             d='M7.418 17.861 1 20l2.139-6.418m4.279 4.279 10.7-10.7a3.027 3.027 0 0 0-2.14-5.165c-.802 0-1.571.319-2.139.886l-10.7 10.7m4.279 4.279-4.279-4.279m2.139 2.14 7.844-7.844m-1.426-2.853 4.279 4.279'
           />
         </svg>
+        <PenPopup
+          show={showPopupKey === "pen"}
+          close={() => {
+            setShowPopupKey("");
+          }}
+        />
       </div>
 
       {/* text */}
       <div
         onClick={() => {
           setTool("text");
+          setShowPopupKey("");
         }}
         className={`ct-menu-item ${tool === "text" && "active"}`}
       >

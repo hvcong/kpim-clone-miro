@@ -31,19 +31,17 @@ export default function ShapePopup({ show, close }: Props) {
 
   return (
     <div
-      className={`absolute top-1/2 left-full h-32  bg-white -translate-y-1/2 translate-x-2 shadow-lg rounded-md ${
+      className={`absolute top-1/2 left-full  bg-white -translate-y-1/2 translate-x-2 shadow-lg rounded-md ${
         !show && "hidden"
       }`}
       ref={containerRef}
-      onClick={(e) => {
-        e.stopPropagation();
-        close();
-      }}
     >
       <div
         className='w-11 h-11 flex justify-center items-center group'
-        onClick={() => {
+        onClick={(e) => {
           setShapeType("rectangle");
+          close();
+          e.stopPropagation();
         }}
       >
         <svg
@@ -60,8 +58,10 @@ export default function ShapePopup({ show, close }: Props) {
       </div>
       <div
         className='w-11 h-11 flex justify-center items-center group'
-        onClick={() => {
+        onClick={(e) => {
           setShapeType("eclipse");
+          close();
+          e.stopPropagation();
         }}
       >
         <svg
@@ -78,8 +78,10 @@ export default function ShapePopup({ show, close }: Props) {
       </div>
       <div
         className='w-11 h-11 flex justify-center items-center group'
-        onClick={() => {
+        onClick={(e) => {
           setShapeType("triangle");
+          close();
+          e.stopPropagation();
         }}
       >
         <svg

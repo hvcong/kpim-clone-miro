@@ -15,6 +15,7 @@ type ToolStateType = {
   setTool: (tool: ToolType) => void;
   setShapeType: (shapeType: ShapeType | undefined) => void;
   setPenStyle: (penStyle: { color: string; strokeWidth: number } | undefined) => void;
+  setPenType: (penType: PenType) => void;
 };
 
 const useToolStore = create<ToolStateType>((set) => ({
@@ -33,6 +34,9 @@ const useToolStore = create<ToolStateType>((set) => ({
   },
   setPenStyle: (penStyle = { color: "#000", strokeWidth: 1 }) => {
     set({ penStyle });
+  },
+  setPenType: (penType) => {
+    set({ penType });
   },
 }));
 
