@@ -34,4 +34,10 @@
     .ct-menu-icon {
         @apply w-5 h-5 text-gray-800
     }
-    }
+
+
+    
+}
+.ct-cursor {
+    cursor: url('/chat_cursor.png') 11 17, auto;
+}

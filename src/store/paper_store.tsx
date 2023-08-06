@@ -1,22 +1,33 @@
-import { EnumType } from "typescript";
-import { create } from "zustand";
+import { EnumType } from 'typescript';
+import { create } from 'zustand';
+import { fabric } from 'fabric';
 
-type RightSideBarType = "comment" | "message" | "";
-type LeftSideBarType = "frame" | "history" | "";
+type RightSideBarType = 'comment' | 'message' | '';
+type LeftSideBarType = 'frame' | 'history' | '';
 
 type PaperStateType = {
+  //server state
+  isSaving: boolean;
+  isSaved: boolean;
+
+  // canvas data state
   scale: number;
-  rightSideBarType: RightSideBarType;
-  leftSideBarType: LeftSideBarType;
-  showCursorPartner: boolean;
+  canvas: fabric.Canvas | null;
+
   pointScale: {
     x: number;
     y: number;
   };
-  canvas: fabric.Canvas | null;
-  drawnObjs: [];
+
+  // paper page state
+
+  showStyleBar: boolean;
+  rightSideBarType: RightSideBarType;
+  leftSideBarType: LeftSideBarType;
+  showCursorPartner: boolean;
   showPaperDetailModal: boolean;
 
+  setShowStyleBar: (show: boolean) => void;
   setScale: (scale: number, x: number, y: number) => void;
   setCanvas: (canvas: fabric.Canvas | null) => void;
   setRightSideBarType: (type: RightSideBarType) => void;
@@ -26,17 +37,30 @@ type PaperStateType = {
 };
 
 const usePaperStore = create<PaperStateType>((set) => ({
+  //
+  isSaving: false,
+  isSaved: true,
+  //
   scale: 1,
   canvas: null,
   pointScale: {
     x: 0,
     y: 0,
   },
-  drawnObjs: [],
-  rightSideBarType: "",
-  leftSideBarType: "",
+
+  //
+  showStyleBar: false,
+  rightSideBarType: '',
+  leftSideBarType: '',
   showCursorPartner: false,
   showPaperDetailModal: false,
+
+  //
+  setShowStyleBar: (show) => {
+    set({
+      showStyleBar: show,
+    });
+  },
   setScale: (scale, x, y) => {
     set({ scale: scale, pointScale: { x, y } });
   },

@@ -14,7 +14,6 @@ export default function ShapePopup({ show, close }: Props) {
   useEffect(() => {
     function closePopupWhenClickOutSide({ target }: MouseEvent) {
       if (!containerRef.current?.contains(target as HTMLElement)) {
-        console.log("close");
         close();
       }
     }
