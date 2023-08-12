@@ -1,13 +1,15 @@
 import { EnumType } from 'typescript';
 import { create } from 'zustand';
 import { fabric } from 'fabric';
-import { Paper } from '@/utils/types';
+import { Paper } from '@/types/types';
+import useSocketIoStore from './socketio_store';
 
 type RightSideBarType = 'comment' | 'message' | string;
 type LeftSideBarType = 'frame' | 'history' | string;
 
 type PaperStateType = {
   paper: Paper | null;
+  memberOnlineList: string[];
   //server state
   isSaving: boolean;
   isSaved: boolean;
@@ -38,10 +40,17 @@ type PaperStateType = {
   setShowPaperDetailModal: (show: boolean) => void;
   setPaper: (paper: Paper | null) => void;
   resetPaperState: () => void;
+  emit_updatePaperName: (name: string) => void;
+
+  on_updatePaperName: (name: string) => void;
+  on_setListMemberOnline: (list: string[]) => void;
+  on_addOneMemberOnline: (userId: string) => void;
+  on_removeOneMemberOnline: (user: string) => void;
 };
 
 const initPaperState = {
   paper: null,
+  memberOnlineList: [],
   //
   isSaving: false,
   isSaved: true,
@@ -108,6 +117,51 @@ const usePaperStore = create<PaperStateType>((set) => ({
   resetPaperState: () => {
     set({
       ...initPaperState,
+    });
+  },
+
+  //on
+  on_updatePaperName(name) {
+    set(({ paper }) => {
+      return {
+        paper: {
+          ...paper,
+          name,
+        },
+      };
+    });
+  },
+
+  on_setListMemberOnline: (list) => {
+    set(({ memberOnlineList }) => ({
+      memberOnlineList: list,
+    }));
+  },
+  on_addOneMemberOnline: (userId) => {
+    set(({ memberOnlineList }) => ({
+      memberOnlineList: [...memberOnlineList, userId],
+    }));
+  },
+  on_removeOneMemberOnline: (userId) => {
+    set(({ memberOnlineList }) => ({
+      memberOnlineList: memberOnlineList.filter((id) => id !== userId),
+    }));
+  },
+
+  //socket
+  emit_updatePaperName(name = 'Untitled') {
+    const { socket } = useSocketIoStore.getState();
+    if (!socket) return;
+
+    socket.emit('paper:update_name', name);
+
+    set(({ paper }) => {
+      return {
+        paper: {
+          ...paper,
+          name,
+        },
+      };
     });
   },
 }));

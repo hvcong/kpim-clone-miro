@@ -1,7 +1,7 @@
 import { AxiosResponse } from 'axios';
 import axiosClient from './axiosClient';
 import { IUser } from '@/store/auth_store';
-import { ResponseTypeCustom } from '@/utils/types';
+import { ResponseTypeCustom } from '@/types/types';
 
 class AuthApi {
   async login(

@@ -5,3 +5,26 @@ export const PAPER_USER_ROLE = {
   ADMIN: 'ADMIN',
   NO_ACCESS: 'NOACESS',
 };
+
+export const memberColors = [
+  { backgroundColor: '#F94144', textColor: '#FFFFFF' },
+  { backgroundColor: '#F3722C', textColor: '#FFFFFF' },
+  { backgroundColor: '#F8961E', textColor: '#FFFFFF' },
+  { backgroundColor: '#F9C74F', textColor: '#000000' },
+  { backgroundColor: '#90BE6D', textColor: '#000000' },
+  { backgroundColor: '#43AA8B', textColor: '#000000' },
+  { backgroundColor: '#4D908E', textColor: '#FFFFFF' },
+  { backgroundColor: '#577590', textColor: '#FFFFFF' },
+  { backgroundColor: '#277DA1', textColor: '#FFFFFF' },
+  { backgroundColor: '#264653', textColor: '#FFFFFF' },
+  { backgroundColor: '#2A9D8F', textColor: '#000000' },
+  { backgroundColor: '#E9C46A', textColor: '#000000' },
+  { backgroundColor: '#F4A261', textColor: '#000000' },
+  { backgroundColor: '#E76F51', textColor: '#FFFFFF' },
+  { backgroundColor: '#C4B1AE', textColor: '#FFFFFF' },
+  { backgroundColor: '#9D4EDD', textColor: '#FFFFFF' },
+  { backgroundColor: '#6F42C1', textColor: '#FFFFFF' },
+  { backgroundColor: '#553C9A', textColor: '#FFFFFF' },
+  { backgroundColor: '#563D7C', textColor: '#FFFFFF' },
+  { backgroundColor: '#4A2D8B', textColor: '#FFFFFF' },
+];

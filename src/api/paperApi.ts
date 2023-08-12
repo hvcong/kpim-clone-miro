@@ -1,6 +1,6 @@
 import { Axios, AxiosResponse } from 'axios';
 import axiosClient from './axiosClient';
-import { Paper, ResponseTypeCustom } from '@/utils/types';
+import { Paper, ResponseTypeCustom } from '@/types/types';
 
 class PaperApi {
   getList(): Promise<

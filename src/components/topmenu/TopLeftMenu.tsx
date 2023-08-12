@@ -6,8 +6,9 @@ import { useRouter } from 'next/router';
 type Props = {};
 
 export default function TopLeftMenu({}: Props) {
-  const { setShowPaperDetailModal } = usePaperStore();
+  const { setShowPaperDetailModal, paper } = usePaperStore();
   const router = useRouter();
+  if (!paper) return;
 
   return (
     <div className="pointer-events-auto h-full">
@@ -29,7 +30,7 @@ export default function TopLeftMenu({}: Props) {
             font-semibold 
           "
         >
-          <div className="">filenameasdfasdfa</div>
+          <div className="">{paper.name}</div>
         </div>
         <div className="border-l border-gray-300 h-5"></div>
         <div className="group  rounded-md hover:bg-blue-100 h-10 flex justify-center items-center px-3 mx-0.5 transition-all cursor-pointer">

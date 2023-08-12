@@ -21,6 +21,7 @@ import useGlobalStore from '@/store';
 import { BASE_URL } from '@/api/axiosClient';
 import { canvasHandler } from '@/handler/canvasHandler';
 import { browserStore } from '@/utils';
+import useSocketIoStore from '@/store/socketio_store';
 
 type Props = {};
 
@@ -32,28 +33,11 @@ function Paper({}: Props) {
   const { canvas, setCanvas, setPaper, resetPaperState, paper } =
     usePaperStore();
   const { resetDrawnState, setDrawnObjectList } = useDrawnStore();
-  const { setFullLoading, setSocket } = useGlobalStore();
+  const { setFullLoading } = useGlobalStore();
+  const { setSocket } = useSocketIoStore();
 
   const router = useRouter();
   const paperId = router.query.paperId as string;
-
-  // const { data, isError, isFetching } = useQuery(
-  //   ['get_paper', paperId],
-  //   () => paperApi.getOneById(paperId),
-  //   {
-  //     onSuccess: (data) => {
-  //       console.log('render');
-  //       if (canvas) {
-  //         let paper = data.data.paper;
-
-  //         setPaper({
-  //           ...paper,
-  //           value: JSON.parse(paper.value),
-  //         });
-  //       }
-  //     },
-  //   },
-  // );
 
   useEffect(() => {
     // init canvas
@@ -89,22 +73,24 @@ function Paper({}: Props) {
 
   // connect io
   useEffect(() => {
-    console.log('soket');
-    const socket = io(BASE_URL, {
-      auth: (cb) => {
-        cb({
-          token: 'Bear ' + browserStore.getToken(),
-          paperId,
-        });
-      },
-    });
-    setSocket(socket);
-    return () => {
-      if (socket) {
-        setSocket(null);
-        socket.disconnect();
-      }
-    };
+    if (paperId) {
+      console.log('init soket');
+      const socket = io(BASE_URL, {
+        auth: (cb) => {
+          cb({
+            token: 'Bear ' + browserStore.getToken(),
+            paperId,
+          });
+        },
+      });
+      setSocket(socket);
+      return () => {
+        if (socket) {
+          setSocket(null);
+          socket.disconnect();
+        }
+      };
+    }
   }, [paperId]);
 
   return (

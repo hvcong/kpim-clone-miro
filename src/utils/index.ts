@@ -1,4 +1,7 @@
+import { DrawnObjectType } from '@/store/drawn_object_store';
 import { v4 } from 'uuid';
+import { Frame } from './customFabricClass';
+import { fabric } from 'fabric';
 export function uuid(): string {
   return v4();
 }
@@ -26,3 +29,26 @@ export const browserStore = {
     return localStorage.getItem('token');
   },
 };
+
+export function convertDataLessToCanvasObj(
+  obj: DrawnObjectType,
+): null | fabric.Object {
+  switch (obj.type) {
+    case 'rect':
+      return new fabric.Rect(obj);
+
+    case 'textbox':
+      if (obj.isFrameLabel) {
+        return null;
+      } else {
+        return new fabric.Textbox('', obj);
+      }
+    case 'path':
+      return new fabric.Path(obj.path, obj);
+    case 'frame':
+      return new Frame(obj);
+
+    default:
+      return null;
+  }
+}

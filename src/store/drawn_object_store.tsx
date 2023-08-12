@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { UseBoundStore, StoreApi } from 'zustand';
 import usePaperStore from './paper_store';
 import { useMutation } from 'react-query';
+import useGlobalStore from '.';
 
 export type DrawnObjectType = {
   id: string;
@@ -21,7 +22,10 @@ const moreProperties = [
   'frameId',
   'isFrameLabel',
   'frameLabel',
+  'fromEmit',
 ];
+
+let stop = false;
 
 type ActionType = {
   addOne: (newObj: DrawnObjectType) => void;
@@ -37,8 +41,6 @@ const initState = {
   didUpdatedFromServer: false,
 };
 
-export type DrawnStoreType = StateType & ActionType;
-
 const useDrawnStore = create<StateType & ActionType>((set, get) => ({
   ...initState,
   resetDrawnState: () => {
@@ -47,23 +49,7 @@ const useDrawnStore = create<StateType & ActionType>((set, get) => ({
     });
   },
 
-  addOne: async (newObj) => {
-    console.log(newObj);
-    // let data = newObj.toDatalessObject(moreProperties);
-
-    // const { paper } = usePaperStore.getState();
-
-    // if (paper && paper.id) {
-    //   try {
-    //     const res = await drawnObjApi.addOne({
-    //       value: data,
-    //       paperId: paper?.id,
-    //     });
-    //   } catch (error) {
-    //     // set some state
-    //   }
-    // }
-  },
+  addOne: async (newObj) => {},
   removeOne: (obj) => {
     set(({ drawnObjectList }) => {
       return {

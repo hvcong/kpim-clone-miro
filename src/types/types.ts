@@ -1,4 +1,5 @@
 export type RemoveDrawnObjType = 'byGroup' | 'default';
+import { DrawnObject } from '@/types/types';
 
 export type ResponseTypeCustom = {
   isSuccess: boolean;
@@ -29,7 +30,13 @@ export type DrawnObject = {
   [key: string]: any;
 };
 
-enum PAPER_USER_ROLE {
+export type DrawnObjectType = {
+  id: string;
+  [key: string]: any;
+} & fabric.Object &
+  fabric.Group;
+
+export enum PAPER_USER_ROLE {
   EDIT = 'edit',
   READ = 'read',
   COMMENT = 'comment',

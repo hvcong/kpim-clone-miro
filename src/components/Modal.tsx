@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from 'react';
 
 type Props = {
   children: React.ReactNode;
@@ -20,13 +20,15 @@ export default function Modal({ children, close, show }: Props) {
     }
 
     if (show && contenRef.current && containerRef.current) {
-      containerRef.current.addEventListener("click", closeWhenClickOutSide);
+      containerRef.current.addEventListener('click', closeWhenClickOutSide);
     }
 
     return () => {
       if (containerRef.current) {
-        console.log("clear");
-        containerRef.current.removeEventListener("click", closeWhenClickOutSide);
+        containerRef.current.removeEventListener(
+          'click',
+          closeWhenClickOutSide,
+        );
       }
     };
   }, [show]);
@@ -34,8 +36,11 @@ export default function Modal({ children, close, show }: Props) {
   if (!show) return null;
 
   return (
-    <div className='fixed top-0 left-0 right-0 bottom-0 z-50 bg-black/30' ref={containerRef}>
-      <div className='h-full w-full flex justify-center items-center'>
+    <div
+      className="fixed top-0 left-0 right-0 bottom-0 z-50 bg-black/30"
+      ref={containerRef}
+    >
+      <div className="h-full w-full flex justify-center items-center">
         <button onClick={close}>close</button>
         <div ref={contenRef}>{children}</div>
       </div>

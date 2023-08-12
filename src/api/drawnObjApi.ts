@@ -1,4 +1,4 @@
-import { DrawnObject, ResponseTypeCustom } from '@/utils/types';
+import { DrawnObject, ResponseTypeCustom } from '@/types/types';
 import { AxiosResponse } from 'axios';
 import axiosClient from './axiosClient';
 

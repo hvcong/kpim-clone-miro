@@ -3,14 +3,19 @@ import { useRef } from 'react';
 import { fabric } from 'fabric';
 import usePaperStore from '@/store/paper_store';
 import useToolStore from '@/store/tool_store';
-import { calcCoordSelection, uuid } from './../../utils/index';
+import {
+  calcCoordSelection,
+  convertDataLessToCanvasObj,
+  uuid,
+} from './../../utils/index';
 import useDrawnStore, { DrawnObjectType } from '@/store/drawn_object_store';
 import drawnObjApi from '@/api/drawnObjApi';
 import { useMutation, useQuery } from 'react-query';
 import { Frame } from '@/utils/customFabricClass';
-import { DrawnObject } from '@/utils/types';
+import { DrawnObject } from '@/types/types';
 import useGlobalStore from '@/store';
 import socketHandler from '@/handler/socketHandler';
+import useSocketIoStore from '@/store/socketio_store';
 type Props = {
   paperId: string;
 };
@@ -31,18 +36,18 @@ export default function Canvas({ paperId }: Props) {
   const { tool } = useToolStore();
 
   const drawnStore = useDrawnStore();
-  const { paper, setPaper } = usePaperStore();
-  const { setFullLoading, socket } = useGlobalStore();
+  const paperStore = usePaperStore();
+  const { setFullLoading } = useGlobalStore();
+  const { socket, setSocket } = useSocketIoStore();
 
   useEffect(() => {
+    let paper = paperStore.paper;
     if (paper && canvas) {
       drawAll(paper.DrawnObjects);
       setTimeout(() => {
         setFullLoading(false);
       }, 1000);
-      // canvas.isDrawingMode = true;
       // handleScale();
-      console.log(paper.id);
 
       canvas.on('object:added', handleAddedNewObject);
 
@@ -76,10 +81,11 @@ export default function Canvas({ paperId }: Props) {
         document.removeEventListener('keydown', deleteObjByKeyBoard);
       }
     };
-  }, [paper]);
+  }, [paperStore.paper?.id]);
 
   useEffect(() => {
     function handleOffline() {}
+
     if (socket && canvas) {
       window.addEventListener('offline', handleOffline);
 
@@ -89,12 +95,24 @@ export default function Canvas({ paperId }: Props) {
       });
 
       socket.on('paper_data', ({ paper }) => {
-        console.log('aaa');
-        setPaper({
-          ...paper,
-          value: JSON.parse(paper.value),
-        });
+        if (paper) {
+          paperStore.setPaper({
+            ...paper,
+            value: JSON.parse(paper.value),
+          });
+        }
       });
+
+      socket.on('sv:drawn_obj:add', ({ value }) => {
+        let obj = convertDataLessToCanvasObj(value);
+        if (obj) canvas.add(obj);
+        canvas.requestRenderAll();
+      });
+
+      socket.on('sv:paper:update_name', paperStore.on_updatePaperName);
+      socket.on('sv:paper:list_member', paperStore.on_setListMemberOnline);
+      socket.on('sv:member:open_paper', paperStore.on_addOneMemberOnline);
+      socket.on('sv:member:close_paper', paperStore.on_removeOneMemberOnline);
 
       socket.on('disconnect', () => {
         console.log('disconnect');
@@ -123,30 +141,12 @@ export default function Canvas({ paperId }: Props) {
     });
     canvas.requestRenderAll();
 
-    let objs = list
-      .map((item) => {
-        switch (item.type) {
-          case 'rect':
-            return new fabric.Rect(item);
-
-          case 'textbox':
-            if (item.isFrameLabel) {
-              return null;
-            } else {
-              return new fabric.Textbox('', item);
-            }
-          case 'path':
-            return new fabric.Path(item.path, item);
-          case 'frame':
-            return new Frame(item);
-
-          default:
-            break;
-        }
-      })
-      .filter((obj) => obj);
+    let objs = list.map((item) => {
+      return convertDataLessToCanvasObj(item);
+    });
 
     objs.map((item) => {
+      if (!item) return;
       canvas.add(item);
       canvas.requestRenderAll();
     });
@@ -184,33 +184,39 @@ export default function Canvas({ paperId }: Props) {
   }
 
   function handleAddedNewObject(e: fabric.IEvent<MouseEvent>) {
+    if (!canvas || !socket) return;
     const target = e.target as DrawnObjectType;
     const id = uuid();
     //
-    if (target.removedType === 'byGroup') return;
-
-    if (target.type === 'group') return;
-    if (target.type === 'frame') {
+    if (target.removedType === 'byGroup') {
+    } else if (target.type === 'group') {
+    } else if (target.type === 'frame') {
       let text = target.text as DrawnObjectType;
-      target?.set({
+      target.set({
         id,
       });
+
       drawnStore.addOne(target);
 
       text.set({
         frameId: id,
         isFrameLabel: true,
       });
-      canvas?.add(text);
-      canvas?.requestRenderAll();
+      canvas.add(text);
+      canvas.requestRenderAll();
       return;
+    } else {
+      if (target.fromEmit) {
+        target.set({
+          fromEmit: false,
+        });
+      } else {
+        target.set({
+          id,
+        });
+        drawnStore.addOne(target);
+      }
     }
-
-    target?.set({
-      id,
-    });
-
-    drawnStore.addOne(target);
   }
 
   function handleModified(e: fabric.IEvent<MouseEvent>) {

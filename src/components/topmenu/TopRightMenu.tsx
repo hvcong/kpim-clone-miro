@@ -11,24 +11,20 @@ import usePaperStore from '@/store/paper_store';
 import useDrawnStore from '@/store/drawn_object_store';
 import { fabric } from 'fabric';
 import { Frame } from '@/utils/customFabricClass';
+import MemberCircleList from './topRightMenu/MemberCircleList';
 
 type Props = {};
 
 export default function TopRightMenu({}: Props) {
-  const {
-    setRightSideBarType,
-    rightSideBarType,
-    showCursorPartner,
-    setShowCursorPartner,
-  } = usePaperStore();
+  const paperStore = usePaperStore();
 
   return (
     <div className=" bg-white rounded-md shadow-lg pointer-events-auto">
       <div className="h-11 flex items-center">
         <div
-          className={`ct-menu-item ${showCursorPartner && 'active'}`}
+          className={`ct-menu-item ${paperStore.showCursorPartner && 'active'}`}
           onClick={() => {
-            setShowCursorPartner(!showCursorPartner);
+            paperStore.setShowCursorPartner(!paperStore.showCursorPartner);
           }}
         >
           <CursorIcon className="ct-menu-icon" />
@@ -38,25 +34,21 @@ export default function TopRightMenu({}: Props) {
         </div>
         <div
           className={`ct-menu-item ${
-            rightSideBarType === 'comment' && 'active'
+            paperStore.rightSideBarType === 'comment' && 'active'
           }`}
           onClick={() => {
-            setRightSideBarType('comment');
+            paperStore.setRightSideBarType('comment');
           }}
         >
           <ChatIcon className="ct-menu-icon" />
         </div>
-        <div className="h-10 w-10 flex items-center justify-center cursor-pointer">
-          <div className="bg-orange-700 h-7 w-7 flex justify-center items-center rounded-full text-white border-2 border-blue-600 text-sm font-semibold">
-            H
-          </div>
-        </div>
+        <MemberCircleList className="h-10 flex items-center justify-center cursor-pointer space-x-1" />
         <div
           className={`ct-menu-item ${
-            rightSideBarType === 'message' && 'active'
+            paperStore.rightSideBarType === 'message' && 'active'
           }`}
           onClick={() => {
-            setRightSideBarType('message');
+            paperStore.setRightSideBarType('message');
           }}
         >
           <BellIcon className="ct-menu-icon" />
