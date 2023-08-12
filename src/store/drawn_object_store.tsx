@@ -1,13 +1,18 @@
+import drawnObjApi from '@/api/drawnObjApi';
 import { create } from 'zustand';
+import { UseBoundStore, StoreApi } from 'zustand';
+import usePaperStore from './paper_store';
+import { useMutation } from 'react-query';
 
-export type DrawObjectType = {
+export type DrawnObjectType = {
   id: string;
   [key: string]: any;
 } & fabric.Object &
   fabric.Group;
 
 type StateType = {
-  drawnObjectList: DrawObjectType[];
+  drawnObjectList: DrawnObjectType[];
+  didUpdatedFromServer: boolean;
 };
 
 const moreProperties = [
@@ -19,15 +24,20 @@ const moreProperties = [
 ];
 
 type ActionType = {
-  addOne: (newObj: DrawObjectType) => void;
-  removeOne: (obj: DrawObjectType) => void;
-  updateOne: (obj: DrawObjectType) => void;
+  addOne: (newObj: DrawnObjectType) => void;
+  removeOne: (obj: DrawnObjectType) => void;
+  updateOne: (obj: DrawnObjectType) => void;
   resetDrawnState: () => void;
+  setDrawnObjectList: (list: DrawnObjectType[]) => void;
+  setDisUpdatedFromServer: (is: boolean) => void;
 };
 
 const initState = {
   drawnObjectList: [],
+  didUpdatedFromServer: false,
 };
+
+export type DrawnStoreType = StateType & ActionType;
 
 const useDrawnStore = create<StateType & ActionType>((set, get) => ({
   ...initState,
@@ -37,13 +47,22 @@ const useDrawnStore = create<StateType & ActionType>((set, get) => ({
     });
   },
 
-  addOne: (newObj) => {
-    set(({ drawnObjectList }) => ({
-      drawnObjectList: [
-        ...drawnObjectList,
-        newObj.toDatalessObject(moreProperties),
-      ],
-    }));
+  addOne: async (newObj) => {
+    console.log(newObj);
+    // let data = newObj.toDatalessObject(moreProperties);
+
+    // const { paper } = usePaperStore.getState();
+
+    // if (paper && paper.id) {
+    //   try {
+    //     const res = await drawnObjApi.addOne({
+    //       value: data,
+    //       paperId: paper?.id,
+    //     });
+    //   } catch (error) {
+    //     // set some state
+    //   }
+    // }
   },
   removeOne: (obj) => {
     set(({ drawnObjectList }) => {
@@ -75,6 +94,16 @@ const useDrawnStore = create<StateType & ActionType>((set, get) => ({
       return {
         drawnObjectList: _list,
       };
+    });
+  },
+  setDrawnObjectList: (list = []) => {
+    set({
+      drawnObjectList: list,
+    });
+  },
+  setDisUpdatedFromServer: (is) => {
+    set({
+      didUpdatedFromServer: is,
     });
   },
 }));

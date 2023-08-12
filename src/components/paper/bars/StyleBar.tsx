@@ -9,7 +9,7 @@ import usePaperStore from '@/store/paper_store';
 import { calcCoordSelection, uuid } from '@/utils';
 import React, { useEffect, useRef } from 'react';
 import { fabric } from 'fabric';
-import useDrawnStore, { DrawObjectType } from '@/store/drawn_object_store';
+import useDrawnStore, { DrawnObjectType } from '@/store/drawn_object_store';
 
 type Props = {};
 
@@ -18,7 +18,7 @@ export default function StyleBar({}: Props) {
   const { updateOne, removeOne, addOne } = useDrawnStore();
 
   if (!showStyleBar || !canvas) return null;
-  let selectedList = canvas.getActiveObjects() as DrawObjectType[];
+  let selectedList = canvas.getActiveObjects() as DrawnObjectType[];
   if (selectedList.length === 0) return null;
 
   let coord = calcCoordSelection(selectedList);
@@ -51,7 +51,7 @@ export default function StyleBar({}: Props) {
 
     // handle lock one object
     if (selectedList.length === 1) {
-      let obj = selectedList[0] as DrawObjectType;
+      let obj = selectedList[0] as DrawnObjectType;
       obj.lockMovementX = true;
       obj.lockMovementY = true;
       obj.lockRotation = true;
@@ -64,14 +64,14 @@ export default function StyleBar({}: Props) {
     }
     // handle lock many objects
     if (selectedList.length > 1) {
-      const newGroup = new fabric.Group() as DrawObjectType;
+      const newGroup = new fabric.Group() as DrawnObjectType;
 
       let idActiveList = selectedList.map((item) => item.id);
 
       canvas.add(newGroup);
       canvas.setActiveObject(newGroup);
 
-      let listObjs = canvas.getObjects() as DrawObjectType[];
+      let listObjs = canvas.getObjects() as DrawnObjectType[];
 
       listObjs?.map((item) => {
         if (idActiveList.includes(item.id)) {

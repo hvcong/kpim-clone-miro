@@ -20,49 +20,7 @@ export default function TopRightMenu({}: Props) {
     rightSideBarType,
     showCursorPartner,
     setShowCursorPartner,
-    canvas,
   } = usePaperStore();
-
-  const { drawnObjectList } = useDrawnStore();
-
-  function drawAll() {
-    if (!canvas) return;
-
-    canvas.getObjects().map((item) => {
-      canvas.remove(item);
-    });
-    canvas.requestRenderAll();
-
-    setTimeout(() => {
-      let objs = drawnObjectList
-        .map((item) => {
-          switch (item.type) {
-            case 'rect':
-              return new fabric.Rect(item);
-
-            case 'textbox':
-              if (item.isFrameLabel) {
-                return null;
-              } else {
-                return new fabric.Textbox('', item);
-              }
-            case 'path':
-              return new fabric.Path(item.path, item);
-            case 'frame':
-              return new Frame(item);
-
-            default:
-              break;
-          }
-        })
-        .filter((obj) => obj);
-
-      objs.map((item) => {
-        canvas.add(item);
-        canvas.requestRenderAll();
-      });
-    }, 2000);
-  }
 
   return (
     <div className=" bg-white rounded-md shadow-lg pointer-events-auto">
@@ -89,12 +47,7 @@ export default function TopRightMenu({}: Props) {
           <ChatIcon className="ct-menu-icon" />
         </div>
         <div className="h-10 w-10 flex items-center justify-center cursor-pointer">
-          <div
-            className="bg-orange-700 h-7 w-7 flex justify-center items-center rounded-full text-white border-2 border-blue-600 text-sm font-semibold"
-            onClick={() => {
-              drawAll();
-            }}
-          >
+          <div className="bg-orange-700 h-7 w-7 flex justify-center items-center rounded-full text-white border-2 border-blue-600 text-sm font-semibold">
             H
           </div>
         </div>

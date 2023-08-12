@@ -4,10 +4,21 @@ import { fabric } from 'fabric';
 import usePaperStore from '@/store/paper_store';
 import useToolStore from '@/store/tool_store';
 import { calcCoordSelection, uuid } from './../../utils/index';
-import useDrawnStore, { DrawObjectType } from '@/store/drawn_object_store';
-type Props = {};
+import useDrawnStore, { DrawnObjectType } from '@/store/drawn_object_store';
+import drawnObjApi from '@/api/drawnObjApi';
+import { useMutation, useQuery } from 'react-query';
+import { Frame } from '@/utils/customFabricClass';
+import { DrawnObject } from '@/utils/types';
+import useGlobalStore from '@/store';
+import socketHandler from '@/handler/socketHandler';
+type Props = {
+  paperId: string;
+};
+async function getAllDrawnObj(paperId: string) {
+  return await drawnObjApi.getAllByPaperId(paperId);
+}
 
-export default function Canvas({}: Props) {
+export default function Canvas({ paperId }: Props) {
   const {
     scale,
     pointScale,
@@ -19,12 +30,19 @@ export default function Canvas({}: Props) {
   } = usePaperStore();
   const { tool } = useToolStore();
 
-  const { drawnObjectList, addOne, removeOne, updateOne } = useDrawnStore();
+  const drawnStore = useDrawnStore();
+  const { paper, setPaper } = usePaperStore();
+  const { setFullLoading, socket } = useGlobalStore();
 
   useEffect(() => {
-    if (canvas) {
+    if (paper && canvas) {
+      drawAll(paper.DrawnObjects);
+      setTimeout(() => {
+        setFullLoading(false);
+      }, 1000);
       // canvas.isDrawingMode = true;
       // handleScale();
+      console.log(paper.id);
 
       canvas.on('object:added', handleAddedNewObject);
 
@@ -47,11 +65,92 @@ export default function Canvas({}: Props) {
 
     return () => {
       if (canvas) {
-        canvas.removeListeners();
+        canvas.off('object:added');
+        canvas.off('object:removed');
+        canvas.off('object:moving');
+        canvas.off('object:modified');
+        canvas.off('object:scaling');
+        canvas.off('selection:created');
+        canvas.off('selection:updated');
+        canvas.off('selection:cleared');
         document.removeEventListener('keydown', deleteObjByKeyBoard);
       }
     };
-  }, [canvas]);
+  }, [paper]);
+
+  useEffect(() => {
+    function handleOffline() {}
+    if (socket && canvas) {
+      window.addEventListener('offline', handleOffline);
+
+      // Other code and event handlers
+      socket.on('connect', () => {
+        console.log('connect');
+      });
+
+      socket.on('paper_data', ({ paper }) => {
+        console.log('aaa');
+        setPaper({
+          ...paper,
+          value: JSON.parse(paper.value),
+        });
+      });
+
+      socket.on('disconnect', () => {
+        console.log('disconnect');
+      });
+
+      socket.on('connect_error', () => {
+        console.log('connect err');
+      });
+    }
+
+    return () => {
+      if (socket) {
+        window.removeEventListener('offline', handleOffline);
+        socket.removeAllListeners();
+      }
+    };
+  }, [socket, canvas]);
+
+  function drawAll(drawnObjList: DrawnObject[]) {
+    if (!canvas) return;
+
+    let list = drawnObjList.map((item) => JSON.parse(item.value));
+
+    canvas.getObjects().map((item) => {
+      canvas.remove(item);
+    });
+    canvas.requestRenderAll();
+
+    let objs = list
+      .map((item) => {
+        switch (item.type) {
+          case 'rect':
+            return new fabric.Rect(item);
+
+          case 'textbox':
+            if (item.isFrameLabel) {
+              return null;
+            } else {
+              return new fabric.Textbox('', item);
+            }
+          case 'path':
+            return new fabric.Path(item.path, item);
+          case 'frame':
+            return new Frame(item);
+
+          default:
+            break;
+        }
+      })
+      .filter((obj) => obj);
+
+    objs.map((item) => {
+      canvas.add(item);
+      canvas.requestRenderAll();
+    });
+  }
 
   function handleScale() {
     if (!canvas) return;
@@ -85,18 +184,18 @@ export default function Canvas({}: Props) {
   }
 
   function handleAddedNewObject(e: fabric.IEvent<MouseEvent>) {
-    const target = e.target as DrawObjectType;
+    const target = e.target as DrawnObjectType;
     const id = uuid();
     //
     if (target.removedType === 'byGroup') return;
 
     if (target.type === 'group') return;
     if (target.type === 'frame') {
-      let text = target.text as DrawObjectType;
+      let text = target.text as DrawnObjectType;
       target?.set({
         id,
       });
-      addOne(target);
+      drawnStore.addOne(target);
 
       text.set({
         frameId: id,
@@ -107,11 +206,11 @@ export default function Canvas({}: Props) {
       return;
     }
 
-    console.log('added:', target.type);
     target?.set({
       id,
     });
-    addOne(target);
+
+    drawnStore.addOne(target);
   }
 
   function handleModified(e: fabric.IEvent<MouseEvent>) {
@@ -121,27 +220,28 @@ export default function Canvas({}: Props) {
     if (canvas?.getActiveObjects().length > 0) {
       setShowStyleBar(true);
     }
-    let target = e.target as DrawObjectType;
+    let target = e.target as DrawnObjectType;
 
     // change many object
     if (target._objects) {
       let list = target._objects || [];
-      list.map((item: DrawObjectType) => {
-        updateOne(item);
+      list.map((item) => {
+        let _item = item as DrawnObjectType;
+        drawnStore.updateOne(_item);
       });
     } else {
       // change one object
 
-      updateOne(target);
+      drawnStore.updateOne(target);
     }
   }
 
   function handleObjRemoved(e: fabric.IEvent<MouseEvent>) {
     if (!canvas) return;
-    let target = e.target as DrawObjectType;
+    let target = e.target as DrawnObjectType;
 
     if (target.removedType !== 'byGroup') {
-      removeOne(target.toDatalessObject(['id']));
+      drawnStore.removeOne(target.toDatalessObject(['id']));
     }
   }
 
@@ -174,10 +274,11 @@ export default function Canvas({}: Props) {
 
   return (
     <>
-      <div className="absolute z-10 flex space-x-2">
+      {/* <div className="absolute z-50 top-32 left-32 flex space-x-2">
         <div
           className="bg-red-300 cursor-pointer p-2 m-1"
           onClick={(e) => {
+            console.log(socket);
             if (!canvas) return;
             // const vtf = canvas?.viewportTransform;
             // let x = 0;
@@ -198,15 +299,15 @@ export default function Canvas({}: Props) {
 
             // canvas.requestRenderAll();
 
-            const a = new fabric.Rect({
-              left: 200,
-              top: 200,
-              height: 100,
-              width: 100,
-              fill: 'green',
-            });
+            // const a = new fabric.Rect({
+            //   left: 200,
+            //   top: 200,
+            //   height: 100,
+            //   width: 100,
+            //   fill: 'green',
+            // });
 
-            canvas.add(a);
+            // canvas.add(a);
           }}
         >
           add rect
@@ -229,7 +330,7 @@ export default function Canvas({}: Props) {
         {isSaving && (
           <div className="bg-red-300 cursor-pointer p-2 m-1">Saving...</div>
         )}
-      </div>
+      </div> */}
     </>
   );
 }

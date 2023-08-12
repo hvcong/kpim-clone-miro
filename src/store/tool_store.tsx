@@ -12,6 +12,9 @@ type ToolStateType = {
     color: string;
     strokeWidth: number;
   };
+};
+
+type ToolActionType = {
   setTool: (tool: ToolType) => void;
   setShapeType: (shapeType: ShapeType | undefined) => void;
   setPenStyle: (
@@ -20,12 +23,12 @@ type ToolStateType = {
   setPenType: (penType: PenType) => void;
 };
 
-const useToolStore = create<ToolStateType>((set) => ({
+const useToolStore = create<ToolStateType & ToolActionType>((set) => ({
   tool: 'default',
   shapeType: 'rectangle',
   penType: 'default',
   penStyle: {
-    color: '#000',
+    color: 'black',
     strokeWidth: 1,
   },
   setTool: (tool = 'default') => {

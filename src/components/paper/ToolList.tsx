@@ -5,7 +5,7 @@ import useToolStore from '@/store/tool_store';
 import ShapePopup from './ShapePopup';
 import PenPopup from './PenPopup';
 import { uuid } from '@/utils';
-import useDrawnStore, { DrawObjectType } from '@/store/drawn_object_store';
+import useDrawnStore, { DrawnObjectType } from '@/store/drawn_object_store';
 import { ChatIcon, FrameIcon } from '../svgs';
 import { Frame } from '@/utils/customFabricClass';
 
@@ -15,7 +15,7 @@ type PopupKeyType = 'shape' | 'pen' | 'comment' | '';
 
 export default function ToolList({}: Props) {
   const { canvas } = usePaperStore();
-  const { tool, setTool, shapeType } = useToolStore();
+  const { tool, setTool, shapeType, penStyle } = useToolStore();
   const { updateOne } = useDrawnStore();
   const { scale } = usePaperStore();
 
@@ -25,7 +25,7 @@ export default function ToolList({}: Props) {
     let clearFunc: (() => void) | null | undefined = null;
     if (canvas) {
       if (tool === 'pen') {
-        canvas.isDrawingMode = true;
+        clearFunc = handleFreeDraw();
       }
 
       if (tool === 'text') {
@@ -132,7 +132,7 @@ export default function ToolList({}: Props) {
       const pointer = canvas.getPointer(options.e);
       const x = pointer.x;
       const y = pointer.y;
-      let shape: DrawObjectType | fabric.Object | null = null;
+      let shape: DrawnObjectType | fabric.Object | null = null;
 
       if (shapeType === 'rectangle') {
         shape = new fabric.Rect({
@@ -178,7 +178,7 @@ export default function ToolList({}: Props) {
     function mouseUp(options: fabric.IEvent<MouseEvent>) {
       if (!canvas) return;
       isDrawing = false;
-      const shape = canvas.getActiveObject() as DrawObjectType;
+      const shape = canvas.getActiveObject() as DrawnObjectType;
       if (shape) {
         shape.set({
           selectable: true,
@@ -237,6 +237,24 @@ export default function ToolList({}: Props) {
       canvas.off('mouse:down', mouseDown);
     };
   }
+
+  function handleFreeDraw() {
+    if (!canvas) return;
+    canvas.isDrawingMode = true;
+
+    return () => {
+      canvas.isDrawingMode = false;
+    };
+  }
+
+  useEffect(() => {
+    if (canvas) {
+      canvas.freeDrawingBrush.color = penStyle.color;
+      canvas.freeDrawingBrush.width = penStyle.strokeWidth / 3;
+    }
+
+    return () => {};
+  }, [penStyle, canvas]);
 
   return (
     <div className="bg-white flex flex-col rounded-md shadow-lg">

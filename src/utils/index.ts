@@ -14,3 +14,15 @@ export function calcCoordSelection(selected: fabric.Object[]) {
   }
   return coord;
 }
+
+export const browserStore = {
+  addToken: (token: string) => {
+    localStorage.setItem('token', token);
+  },
+  removeToken: () => {
+    localStorage.removeItem('token');
+  },
+  getToken: () => {
+    return localStorage.getItem('token');
+  },
+};

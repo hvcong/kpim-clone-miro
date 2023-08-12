@@ -1,0 +1,7 @@
+export const PAPER_USER_ROLE = {
+  EDIT: 'EDIT',
+  READ: 'READ',
+  COMMENT: 'COMMENT',
+  ADMIN: 'ADMIN',
+  NO_ACCESS: 'NOACESS',
+};

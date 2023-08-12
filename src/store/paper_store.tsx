@@ -1,11 +1,13 @@
 import { EnumType } from 'typescript';
 import { create } from 'zustand';
 import { fabric } from 'fabric';
+import { Paper } from '@/utils/types';
 
-type RightSideBarType = 'comment' | 'message' | '';
-type LeftSideBarType = 'frame' | 'history' | '';
+type RightSideBarType = 'comment' | 'message' | string;
+type LeftSideBarType = 'frame' | 'history' | string;
 
 type PaperStateType = {
+  paper: Paper | null;
   //server state
   isSaving: boolean;
   isSaved: boolean;
@@ -34,26 +36,33 @@ type PaperStateType = {
   setLeftSideBarType: (type: LeftSideBarType) => void;
   setShowCursorPartner: (show: boolean) => void;
   setShowPaperDetailModal: (show: boolean) => void;
+  setPaper: (paper: Paper | null) => void;
+  resetPaperState: () => void;
 };
 
-const usePaperStore = create<PaperStateType>((set) => ({
+const initPaperState = {
+  paper: null,
   //
   isSaving: false,
   isSaved: true,
   //
+
   scale: 1,
   canvas: null,
   pointScale: {
     x: 0,
     y: 0,
   },
-
-  //
   showStyleBar: false,
   rightSideBarType: '',
   leftSideBarType: '',
   showCursorPartner: false,
   showPaperDetailModal: false,
+};
+
+const usePaperStore = create<PaperStateType>((set) => ({
+  ...initPaperState,
+  //
 
   //
   setShowStyleBar: (show) => {
@@ -89,6 +98,16 @@ const usePaperStore = create<PaperStateType>((set) => ({
   setShowPaperDetailModal: (show) => {
     set({
       showPaperDetailModal: show,
+    });
+  },
+  setPaper: (paper) => {
+    set({
+      paper,
+    });
+  },
+  resetPaperState: () => {
+    set({
+      ...initPaperState,
     });
   },
 }));

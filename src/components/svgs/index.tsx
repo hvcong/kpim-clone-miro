@@ -40,6 +40,48 @@ function SettingIcon({ className }: SvgProps) {
   );
 }
 
+export function StartIcon(props: SvgProps) {
+  return (
+    <svg
+      {...props}
+      aria-hidden="true"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 21 20"
+    >
+      <path
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="m11.479 1.712 2.367 4.8a.532.532 0 0 0 .4.292l5.294.769a.534.534 0 0 1 .3.91l-3.83 3.735a.534.534 0 0 0-.154.473l.9 5.272a.535.535 0 0 1-.775.563l-4.734-2.49a.536.536 0 0 0-.5 0l-4.73 2.487a.534.534 0 0 1-.775-.563l.9-5.272a.534.534 0 0 0-.154-.473L2.158 8.48a.534.534 0 0 1 .3-.911l5.294-.77a.532.532 0 0 0 .4-.292l2.367-4.8a.534.534 0 0 1 .96.004Z"
+      />
+    </svg>
+  );
+}
+
+export function LogoutIcon({ className }: SvgProps) {
+  return (
+    <svg
+      fill="none"
+      viewBox="0 0 24 24"
+      className={className}
+      aria-hidden="true"
+      role="presentation"
+      focusable="false"
+      data-testid="svg-icon"
+    >
+      <path
+        xmlns="http://www.w3.org/2000/svg"
+        fill="currentColor"
+        d="M5 3C3.34315 3 2 4.34315 2 6V18C2 19.6569 3.34315 21 5 21H14V19H5C4.44772 19 4 18.5523 4 18V6C4 5.44772 4.44772 5 5 5H14V3H5ZM21.8302 12.5575C21.8815 12.4811 21.9215 12.3987 21.9498 12.3128C21.9836 12.2104 22.0001 12.1048 22 12C22.0001 11.8951 21.9836 11.7895 21.9498 11.6872C21.9217 11.6018 21.882 11.5198 21.8312 11.4439C21.7932 11.3871 21.7498 11.3349 21.7019 11.2876L17.7071 7.29286C17.3166 6.90234 16.6834 6.90234 16.2929 7.29286C15.9024 7.68339 15.9024 8.31655 16.2929 8.70708L18.5858 11H11C10.4477 11 10 11.4477 10 12C10 12.5523 10.4477 13 11 13H18.5858L16.2929 15.2929C15.9024 15.6834 15.9024 16.3166 16.2929 16.7071C16.6834 17.0976 17.3166 17.0976 17.7071 16.7071L21.7019 12.7123C21.7494 12.6655 21.7925 12.6137 21.8302 12.5575Z"
+        clipRule="evenodd"
+        fillRule="evenodd"
+      ></path>
+    </svg>
+  );
+}
+
 function ExportIcon({ className }: SvgProps) {
   return (
     <svg
@@ -459,6 +501,104 @@ export function UnLockIcon(props: SvgProps) {
         strokeWidth="2"
         d="M18.5 8V4.5a3.5 3.5 0 1 0-7 0V8M8 12.167v3M2 8h12a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"
       />
+    </svg>
+  );
+}
+
+export function HightLightPenIcon(props: SvgProps) {
+  return (
+    <svg
+      fill="none"
+      viewBox="0 0 24 24"
+      {...props}
+      aria-hidden="true"
+      role="presentation"
+      focusable="false"
+      data-testid="svg-icon"
+    >
+      <path
+        xmlns="http://www.w3.org/2000/svg"
+        strokeWidth="2"
+        stroke="currentColor"
+        d="M18 13V14H19H19.1479C19.6705 14 20.1049 14.4023 20.145 14.9233L20.9201 25L3.07988 25L3.85501 14.9233C3.89508 14.4023 4.32953 14 4.85206 14H5H6V13V11.0002C6 10.4467 6.44716 10.0001 6.99837 10.0001H6.9984L17.0017 10.0001H17.0017C17.5529 10.0001 18 10.4467 18 11.0001V13Z"
+      ></path>
+      <path
+        xmlns="http://www.w3.org/2000/svg"
+        strokeWidth="2"
+        stroke="currentColor"
+        d="M8 9C8 9.55228 8.44772 10 9 10H15C15.5523 10 16 9.55228 16 9V3.43961C16 2.80856 15.4227 2.33527 14.8039 2.45903L8.80389 3.65903C8.33646 3.75251 8 4.16293 8 4.63961V9Z"
+      ></path>
+      <path
+        xmlns="http://www.w3.org/2000/svg"
+        fill="currentColor"
+        d="M17 13V15H7V13H17Z"
+      ></path>
+    </svg>
+  );
+}
+
+export function CheckIcon(props: SvgProps) {
+  return (
+    <svg
+      {...props}
+      aria-hidden="true"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 16 12"
+    >
+      <path
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M1 5.917 5.724 10.5 15 1.5"
+      />
+    </svg>
+  );
+}
+export function EraserIcon(props: SvgProps) {
+  return (
+    <svg
+      fill="none"
+      viewBox="0 0 24 24"
+      {...props}
+      aria-hidden="true"
+      role="presentation"
+      focusable="false"
+      data-testid="svg-icon"
+    >
+      <path
+        xmlns="http://www.w3.org/2000/svg"
+        fill="currentColor"
+        d="M6.32843 20L5.62132 20.7071L5.91421 21L6.32843 21L6.32843 20ZM11.9853 20L11.9853 21H11.9853V20ZM17.6421 21C18.1944 21 18.6421 20.5523 18.6421 20C18.6421 19.4477 18.1944 19 17.6421 19V21ZM17.6421 14.3431L18.3492 15.0503L18.3492 15.0503L17.6421 14.3431ZM3.5 14.3431L4.20711 15.0503L3.5 14.3431ZM20.4706 8.68629L19.7635 9.3934L19.7635 9.3934L20.4706 8.68629ZM20.4706 11.5147L19.7635 10.8076L19.7635 10.8076L20.4706 11.5147ZM16.2279 4.44365L16.935 3.73654L16.935 3.73654L16.2279 4.44365ZM13.3995 4.44365L12.6924 3.73654L12.6924 3.73654L13.3995 4.44365ZM15.5208 5.15076L19.7635 9.3934L21.1777 7.97919L16.935 3.73654L15.5208 5.15076ZM7.03553 19.2929L4.20711 16.4645L2.79289 17.8787L5.62132 20.7071L7.03553 19.2929ZM11.9853 19L6.32843 19L6.32843 21L11.9853 21L11.9853 19ZM11.9853 21H17.6421V19H11.9853V21ZM4.20711 15.0503L11.2782 7.97918L9.86396 6.56497L2.79289 13.636L4.20711 15.0503ZM11.2782 7.97918L14.1066 5.15076L12.6924 3.73654L9.86396 6.56497L11.2782 7.97918ZM19.7635 10.8076L16.935 13.636L18.3492 15.0503L21.1777 12.2218L19.7635 10.8076ZM16.935 13.636L11.2782 19.2929L12.6924 20.7071L18.3492 15.0503L16.935 13.636ZM9.86396 7.97918L16.935 15.0503L18.3492 13.636L11.2782 6.56497L9.86396 7.97918ZM4.20711 16.4645C3.81658 16.0739 3.81658 15.4408 4.20711 15.0503L2.79289 13.636C1.62132 14.8076 1.62132 16.7071 2.79289 17.8787L4.20711 16.4645ZM19.7635 9.3934C20.154 9.78392 20.154 10.4171 19.7635 10.8076L21.1777 12.2218C22.3492 11.0503 22.3492 9.15076 21.1777 7.97918L19.7635 9.3934ZM16.935 3.73654C15.7635 2.56497 13.864 2.56497 12.6924 3.73654L14.1066 5.15076C14.4971 4.76023 15.1303 4.76023 15.5208 5.15076L16.935 3.73654Z"
+      ></path>
+    </svg>
+  );
+}
+
+export function PenIcon(props: SvgProps) {
+  return (
+    <svg
+      fill="none"
+      viewBox="0 0 24 24"
+      {...props}
+      aria-hidden="true"
+      role="presentation"
+      focusable="false"
+      data-testid="svg-icon"
+    >
+      <path
+        xmlns="http://www.w3.org/2000/svg"
+        strokeWidth="2"
+        stroke="currentColor"
+        d="M13.4097 2.80282L19 18.1762V24C19 24.5523 18.5523 25 18 25H6C5.44771 25 5 24.5523 5 24V18.1762L10.5903 2.80282C11.069 1.48631 12.931 1.4863 13.4097 2.80282Z"
+      ></path>
+      <path
+        xmlns="http://www.w3.org/2000/svg"
+        strokeWidth="2"
+        stroke="currentColor"
+        d="M8.57141 9H15.4286"
+      ></path>
     </svg>
   );
 }
