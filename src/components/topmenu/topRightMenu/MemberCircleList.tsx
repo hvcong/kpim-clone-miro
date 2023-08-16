@@ -11,7 +11,7 @@ export default function MemberCircleList({ className }: Props) {
 
   return (
     <div className={className}>
-      {memberOnlineList.map((item, index) => {
+      {memberOnlineList.map((member, index) => {
         return (
           <div
             key={index}
@@ -22,7 +22,7 @@ export default function MemberCircleList({ className }: Props) {
               borderColor: memberColors[(index + 10) % 20].backgroundColor,
             }}
           >
-            H
+            {member.User.username.charAt(0)}
           </div>
         );
       })}

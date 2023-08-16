@@ -5,7 +5,7 @@ import useToolStore from '@/store/tool_store';
 import ShapePopup from './ShapePopup';
 import PenPopup from './PenPopup';
 import { uuid } from '@/utils';
-import useDrawnStore, { DrawnObjectType } from '@/store/drawn_object_store';
+import useDrawnStore, { CanvasObjectType } from '@/store/drawn_object_store';
 import { ChatIcon, FrameIcon } from '../svgs';
 import { Frame } from '@/utils/customFabricClass';
 
@@ -15,7 +15,7 @@ type PopupKeyType = 'shape' | 'pen' | 'comment' | '';
 
 export default function ToolList({}: Props) {
   const { canvas } = usePaperStore();
-  const { tool, setTool, shapeType, penStyle } = useToolStore();
+  const { tool, setTool, shapeType, penStyle, penType } = useToolStore();
   const { updateOne } = useDrawnStore();
   const { scale } = usePaperStore();
 
@@ -132,7 +132,7 @@ export default function ToolList({}: Props) {
       const pointer = canvas.getPointer(options.e);
       const x = pointer.x;
       const y = pointer.y;
-      let shape: DrawnObjectType | fabric.Object | null = null;
+      let shape: CanvasObjectType | fabric.Object | null = null;
 
       if (shapeType === 'rectangle') {
         shape = new fabric.Rect({
@@ -178,7 +178,7 @@ export default function ToolList({}: Props) {
     function mouseUp(options: fabric.IEvent<MouseEvent>) {
       if (!canvas) return;
       isDrawing = false;
-      const shape = canvas.getActiveObject() as DrawnObjectType;
+      const shape = canvas.getActiveObject() as CanvasObjectType;
       if (shape) {
         shape.set({
           selectable: true,
@@ -246,15 +246,6 @@ export default function ToolList({}: Props) {
       canvas.isDrawingMode = false;
     };
   }
-
-  useEffect(() => {
-    if (canvas) {
-      canvas.freeDrawingBrush.color = penStyle.color;
-      canvas.freeDrawingBrush.width = penStyle.strokeWidth / 3;
-    }
-
-    return () => {};
-  }, [penStyle, canvas]);
 
   return (
     <div className="bg-white flex flex-col rounded-md shadow-lg">

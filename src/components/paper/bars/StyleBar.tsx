@@ -9,18 +9,42 @@ import usePaperStore from '@/store/paper_store';
 import { calcCoordSelection, uuid } from '@/utils';
 import React, { useEffect, useRef } from 'react';
 import { fabric } from 'fabric';
-import useDrawnStore, { DrawnObjectType } from '@/store/drawn_object_store';
+import useDrawnStore, { CanvasObjectType } from '@/store/drawn_object_store';
+import StrokeWidthRange from '@/components/stylePopup/StrokeWidthRange';
+import PathStyleBar from './PathStyleBar';
+import ShapeStyleBar from './ShapeStyleBar';
+import WallIcon from './WallIcon';
 
 type Props = {};
+
+/**
+ * listCategory =
+ * {
+ * path:[item,...],
+ * rect:[item,...]
+ * }
+ */
 
 export default function StyleBar({}: Props) {
   const { showStyleBar, canvas, setShowStyleBar } = usePaperStore();
   const { updateOne, removeOne, addOne } = useDrawnStore();
 
   if (!showStyleBar || !canvas) return null;
-  let selectedList = canvas.getActiveObjects() as DrawnObjectType[];
+  let selectedList = canvas.getActiveObjects() as CanvasObjectType[];
   if (selectedList.length === 0) return null;
 
+  // category
+  const listByCategory: { [key: string]: CanvasObjectType[] } = {};
+  selectedList.map((item) => {
+    let type = item.type || 'Untyped';
+
+    if (!listByCategory[type]) {
+      listByCategory[type] = [];
+    }
+    listByCategory[type].push(item);
+  });
+
+  // calc coord
   let coord = calcCoordSelection(selectedList);
   let isLocked = false;
   let isShow = true;
@@ -51,7 +75,7 @@ export default function StyleBar({}: Props) {
 
     // handle lock one object
     if (selectedList.length === 1) {
-      let obj = selectedList[0] as DrawnObjectType;
+      let obj = selectedList[0] as CanvasObjectType;
       obj.lockMovementX = true;
       obj.lockMovementY = true;
       obj.lockRotation = true;
@@ -64,14 +88,14 @@ export default function StyleBar({}: Props) {
     }
     // handle lock many objects
     if (selectedList.length > 1) {
-      const newGroup = new fabric.Group() as DrawnObjectType;
+      const newGroup = new fabric.Group() as CanvasObjectType;
 
       let idActiveList = selectedList.map((item) => item.id);
 
       canvas.add(newGroup);
       canvas.setActiveObject(newGroup);
 
-      let listObjs = canvas.getObjects() as DrawnObjectType[];
+      let listObjs = canvas.getObjects() as CanvasObjectType[];
 
       listObjs?.map((item) => {
         if (idActiveList.includes(item.id)) {
@@ -133,6 +157,17 @@ export default function StyleBar({}: Props) {
 
   if (!isShow) return null;
 
+  function renderBody() {
+    let typeObjList = Object.keys(listByCategory);
+
+    if (typeObjList.length === 1) {
+      if (typeObjList[0] === 'path')
+        return <PathStyleBar listPaths={listByCategory['path']} />;
+      if (typeObjList[0] === 'rect')
+        return <ShapeStyleBar listByCategory={listByCategory} />;
+    }
+  }
+
   return (
     <div
       className="absolute"
@@ -147,33 +182,21 @@ export default function StyleBar({}: Props) {
             className="group h-10 w-10 flex justify-center items-center cursor-pointer transition-all"
             onClick={() => {
               if (!canvas) return;
-              handleUnLock();
+              // handleUnLock();
             }}
           >
             <LockIcon className="w-5 h-5 text-gray-600 group-hover:text-gray-800" />
           </div>
         ) : (
           <>
-            <div className="group h-10 w-10 flex justify-center items-center cursor-pointer transition-all ">
-              <div className="w-5 h-5 rounded-full border-2 border-gray-600 group-hover:border-gray-800"></div>
-            </div>
-            <WallIcon />
-            <div className="group h-10 w-10 flex justify-center items-center cursor-pointer transition-all">
-              <div className="w-5 h-5 rounded-full border-4 border-gray-600"></div>
-            </div>
-            <div className="group h-10 w-10 flex justify-center items-center cursor-pointer transition-all">
-              <BgTransparentIcon className="w-5 h-5" />
-            </div>
-            <WallIcon />
-            <div className="group h-10 w-10 flex justify-center items-center cursor-pointer transition-all">
-              <ChatIcon className="w-5 h-5 text-gray-600 group-hover:text-gray-800" />
-            </div>
+            {renderBody()}
+
             <div
               className="group h-10 w-10 flex justify-center items-center cursor-pointer transition-all"
               onClick={() => {
                 if (!canvas) return;
 
-                handleLock();
+                // handleLock();
               }}
             >
               <UnLockIcon className="w-5 h-5 text-gray-600 group-hover:text-gray-800" />
@@ -187,8 +210,4 @@ export default function StyleBar({}: Props) {
       </div>
     </div>
   );
-}
-
-function WallIcon() {
-  return <div className="border border-gray-200"></div>;
 }

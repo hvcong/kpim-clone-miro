@@ -1,9 +1,17 @@
+import { moreProperties } from '@/store/socketio_store';
+
 export type RemoveDrawnObjType = 'byGroup' | 'default';
-import { DrawnObject } from '@/types/types';
 
 export type ResponseTypeCustom = {
   isSuccess: boolean;
   message: string | null;
+};
+
+export type Member = {
+  role: string;
+  createdAt: string;
+  updatedAt: string;
+  User: { id: string; username: string };
 };
 
 export type Paper = {
@@ -14,7 +22,6 @@ export type Paper = {
   createdAt: string;
   updatedAt: string;
   Paper_Users: Paper_Users[];
-  DrawnObjects: DrawnObject[];
 };
 
 export type Paper_Users = {
@@ -27,14 +34,35 @@ export type Paper_Users = {
 
 export type DrawnObject = {
   id: string;
-  [key: string]: any;
+  value: string;
+  PaperId: string;
+  ChangeLog: {
+    id: string;
+    type: 'add' | 'update' | 'delete';
+    createdAt: string;
+    updatedAt: string;
+    DrawnObjectId: string;
+    UserId: string;
+    User: { id: string; username: 'Le Minh' };
+  };
 };
 
-export type DrawnObjectType = {
+const morePP = [
+  'id',
+  'isLocked',
+  'frameId',
+  'isFrameLabel',
+  'frameLabel',
+  'fromEmit',
+  'ct_hightLightPen',
+] as const;
+type MorePropertiesType = (typeof morePP)[number];
+
+export type CanvasObjectType = {
   id: string;
   [key: string]: any;
 } & fabric.Object &
-  fabric.Group;
+  fabric.Group & { [K in MorePropertiesType]: any };
 
 export enum PAPER_USER_ROLE {
   EDIT = 'edit',
@@ -43,3 +71,8 @@ export enum PAPER_USER_ROLE {
   ADMIN = 'admin',
   NO_ACCESS = 'noAccess',
 }
+
+export type MousePointer = {
+  x: number;
+  y: number;
+};

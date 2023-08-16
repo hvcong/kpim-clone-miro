@@ -12,9 +12,15 @@ type Props = {
 export default function PenPopup({ show, close }: Props) {
   const { penType, tool, setPenStyle, setPenType, penStyle } = useToolStore();
 
-  const [showColorPicker, setShowColorPicker] = useState(true);
+  const [showColorPicker, setShowColorPicker] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setShowColorPicker(false);
+
+    return () => {};
+  }, [penType]);
 
   return (
     <div
@@ -38,6 +44,7 @@ export default function PenPopup({ show, close }: Props) {
         className="w-11 h-11 flex justify-center items-center group"
         onClick={(e) => {
           setPenType('default');
+
           e.stopPropagation();
         }}
       >
@@ -76,23 +83,26 @@ export default function PenPopup({ show, close }: Props) {
 
       <div className="w-5 border-t border-gray-300 mx-auto"></div>
 
-      <div
-        className="w-11 h-11 flex justify-center items-center relative"
-        onClick={(e) => {}}
-      >
-        <div className=" rounded-full border-2 border-gray-700 h-6 w-6 flex justify-center items-center">
+      <div className="w-11 h-11 flex justify-center items-center relative">
+        <div
+          className=" rounded-full border-2 border-gray-500 h-6 w-6 flex justify-center items-center"
+          onClick={(e) => {
+            setShowColorPicker(!showColorPicker);
+          }}
+        >
           <div
-            className="w-1 h-1 bg-gray-500 rounded-full"
+            className="w-1 h-1 bg-gray-300 rounded-full"
             style={{
               backgroundColor: penStyle.color,
-              width: penStyle.strokeWidth / 5 + 3,
-              height: penStyle.strokeWidth / 5 + 3,
+              width: penStyle.strokeWidth < 10 ? 3 : penStyle.strokeWidth + '%',
+              height:
+                penStyle.strokeWidth < 10 ? 3 : penStyle.strokeWidth + '%',
             }}
           ></div>
-          {showColorPicker && (
-            <PenStylePopup className="absolute left-full top-1/2 translate-x-1 -translate-y-1/2" />
-          )}
         </div>
+        {showColorPicker && (
+          <PenStylePopup className="absolute left-full top-1/2 translate-x-1 -translate-y-1/2" />
+        )}
       </div>
     </div>
   );

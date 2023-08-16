@@ -8,14 +8,19 @@ import {
   convertDataLessToCanvasObj,
   uuid,
 } from './../../utils/index';
-import useDrawnStore, { DrawnObjectType } from '@/store/drawn_object_store';
+import useDrawnStore from '@/store/drawn_object_store';
 import drawnObjApi from '@/api/drawnObjApi';
 import { useMutation, useQuery } from 'react-query';
 import { Frame } from '@/utils/customFabricClass';
-import { DrawnObject } from '@/types/types';
+import {
+  CanvasObjectType,
+  DrawnObject,
+  MousePointer,
+  Paper,
+} from '@/types/types';
 import useGlobalStore from '@/store';
 import socketHandler from '@/handler/socketHandler';
-import useSocketIoStore from '@/store/socketio_store';
+import useSocketIoStore, { moreProperties } from '@/store/socketio_store';
 type Props = {
   paperId: string;
 };
@@ -33,20 +38,18 @@ export default function Canvas({ paperId }: Props) {
     showStyleBar,
     setShowStyleBar,
   } = usePaperStore();
-  const { tool } = useToolStore();
+  const toolStore = useToolStore();
 
   const drawnStore = useDrawnStore();
   const paperStore = usePaperStore();
   const { setFullLoading } = useGlobalStore();
-  const { socket, setSocket } = useSocketIoStore();
+  const { socket, setSocket, ...socketIoStore } = useSocketIoStore();
 
   useEffect(() => {
     let paper = paperStore.paper;
     if (paper && canvas) {
-      drawAll(paper.DrawnObjects);
-      setTimeout(() => {
-        setFullLoading(false);
-      }, 1000);
+      console.log('add event');
+      setFullLoading(false);
       // handleScale();
 
       canvas.on('object:added', handleAddedNewObject);
@@ -61,27 +64,59 @@ export default function Canvas({ paperId }: Props) {
 
       canvas.on('selection:created', handleSelectionCreated);
       canvas.on('selection:updated', handleSelectionUpdated);
-
       canvas.on('selection:cleared', handleSelectionCleared);
+
+      canvas.on('mouse:move', handleMouseMove);
 
       // event delete by delete key
       document.addEventListener('keydown', deleteObjByKeyBoard);
+      drawAll();
     }
 
     return () => {
-      if (canvas) {
+      if (canvas && paper) {
+        console.log('remove event');
         canvas.off('object:added');
         canvas.off('object:removed');
         canvas.off('object:moving');
         canvas.off('object:modified');
         canvas.off('object:scaling');
         canvas.off('selection:created');
+
         canvas.off('selection:updated');
         canvas.off('selection:cleared');
+
         document.removeEventListener('keydown', deleteObjByKeyBoard);
+        canvas.clear();
+        drawnStore.resetDrawnState();
       }
     };
   }, [paperStore.paper?.id]);
+
+  function drawAll() {
+    // just call this affter canvas listent all event
+    if (!canvas) return;
+    let list = drawnStore.drawnObjList.map((item) => {
+      let obj = JSON.parse(item.value);
+      if (item.ChangeLog.type === 'delete') {
+        obj.visible = false;
+      }
+      return obj;
+    });
+
+    let objs = list.map((item) => {
+      return convertDataLessToCanvasObj(item);
+    });
+
+    objs.map((obj) => {
+      if (!obj) return;
+      let item = obj as CanvasObjectType;
+
+      item.ct_fromEmit = true;
+      canvas.add(item);
+      canvas.requestRenderAll();
+    });
+  }
 
   useEffect(() => {
     function handleOffline() {}
@@ -94,23 +129,30 @@ export default function Canvas({ paperId }: Props) {
         console.log('connect');
       });
 
-      socket.on('paper_data', ({ paper }) => {
-        if (paper) {
-          paperStore.setPaper({
-            ...paper,
-            value: JSON.parse(paper.value),
-          });
-        }
-      });
+      socket.on(
+        'sv:paper:load_all',
+        (paper: Paper & { DrawnObjects: DrawnObject[] }) => {
+          console.log('load data');
+          if (paper) {
+            const { DrawnObjects, ...p } = paper;
 
-      socket.on('sv:drawn_obj:add', ({ value }) => {
-        let obj = convertDataLessToCanvasObj(value);
-        if (obj) canvas.add(obj);
-        canvas.requestRenderAll();
-      });
+            drawnStore.setDrawnObjList(DrawnObjects);
+
+            paperStore.setPaper({
+              ...p,
+              value: JSON.parse(p.value),
+            });
+          }
+        },
+      );
+
+      socket.on('sv:drawn_obj:add', drawnStore.on_addOne);
+      socket.on('sv:drawn_obj:remove_one', drawnStore.on_removeOne);
+      socket.on('sv:drawn_obj:update_one', drawnStore.on_updateOne);
 
       socket.on('sv:paper:update_name', paperStore.on_updatePaperName);
       socket.on('sv:paper:list_member', paperStore.on_setListMemberOnline);
+
       socket.on('sv:member:open_paper', paperStore.on_addOneMemberOnline);
       socket.on('sv:member:close_paper', paperStore.on_removeOneMemberOnline);
 
@@ -124,33 +166,26 @@ export default function Canvas({ paperId }: Props) {
     }
 
     return () => {
-      if (socket) {
+      if (socket && canvas) {
         window.removeEventListener('offline', handleOffline);
         socket.removeAllListeners();
       }
     };
   }, [socket, canvas]);
 
-  function drawAll(drawnObjList: DrawnObject[]) {
-    if (!canvas) return;
+  useEffect(() => {
+    if (canvas && socket && paperStore.showCursorPartner) {
+      console.log('on_cursor moving');
+      socket.on(
+        'sv:member:mouse_moving',
+        ({ pointer }: { pointer: MousePointer; userId: string }) => {
+          console.log('cursor moving', pointer);
+        },
+      );
+    }
 
-    let list = drawnObjList.map((item) => JSON.parse(item.value));
-
-    canvas.getObjects().map((item) => {
-      canvas.remove(item);
-    });
-    canvas.requestRenderAll();
-
-    let objs = list.map((item) => {
-      return convertDataLessToCanvasObj(item);
-    });
-
-    objs.map((item) => {
-      if (!item) return;
-      canvas.add(item);
-      canvas.requestRenderAll();
-    });
-  }
+    return () => {};
+  }, [paperStore.showCursorPartner]);
 
   function handleScale() {
     if (!canvas) return;
@@ -168,6 +203,11 @@ export default function Canvas({ paperId }: Props) {
     });
   }
 
+  function handleMouseMove(e: fabric.IEvent<MouseEvent>) {
+    const pointer = e.pointer as MousePointer;
+    paperStore.emit_memberMouseMoving(pointer);
+  }
+
   function handleSelectionUpdated(e: fabric.IEvent<MouseEvent>) {
     setShowStyleBar(true);
   }
@@ -177,7 +217,11 @@ export default function Canvas({ paperId }: Props) {
 
     if (e.code === 'Delete') {
       const objectSelecteds = canvas.getActiveObjects();
-      canvas.remove(...objectSelecteds);
+      // canvas.remove(...objectSelecteds);
+      objectSelecteds.map((target) => {
+        target.visible = false;
+        canvas.fire('object:removed', { target });
+      });
       canvas.discardActiveObject();
       canvas.requestRenderAll();
     }
@@ -185,13 +229,21 @@ export default function Canvas({ paperId }: Props) {
 
   function handleAddedNewObject(e: fabric.IEvent<MouseEvent>) {
     if (!canvas || !socket) return;
-    const target = e.target as DrawnObjectType;
+    const target = e.target as CanvasObjectType;
     const id = uuid();
+
+    if (target.type === 'path' && !target.ct_fromEmit) {
+      console.log(toolStore.getPenType());
+      if (toolStore.getPenType() === 'hightlight') {
+        target.ct_hightLightPen = true;
+      }
+    }
+
     //
     if (target.removedType === 'byGroup') {
     } else if (target.type === 'group') {
     } else if (target.type === 'frame') {
-      let text = target.text as DrawnObjectType;
+      let text = target.text as CanvasObjectType;
       target.set({
         id,
       });
@@ -204,11 +256,10 @@ export default function Canvas({ paperId }: Props) {
       });
       canvas.add(text);
       canvas.requestRenderAll();
-      return;
     } else {
-      if (target.fromEmit) {
+      if (target.ct_fromEmit) {
         target.set({
-          fromEmit: false,
+          ct_fromEmit: false,
         });
       } else {
         target.set({
@@ -216,38 +267,50 @@ export default function Canvas({ paperId }: Props) {
         });
         drawnStore.addOne(target);
       }
+      canvas.requestRenderAll();
     }
   }
 
   function handleModified(e: fabric.IEvent<MouseEvent>) {
     if (!canvas) return;
-    console.log('event modified');
+    console.log('canvas-modified');
 
     if (canvas?.getActiveObjects().length > 0) {
       setShowStyleBar(true);
     }
-    let target = e.target as DrawnObjectType;
+    let target = e.target as CanvasObjectType;
 
     // change many object
     if (target._objects) {
       let list = target._objects || [];
       list.map((item) => {
-        let _item = item as DrawnObjectType;
-        drawnStore.updateOne(_item);
+        let target = item as CanvasObjectType;
+        if (target.ct_fromEmit) {
+          target.ct;
+        } else {
+        }
       });
     } else {
       // change one object
-
-      drawnStore.updateOne(target);
+      if (target.ct_fromEmit) {
+        target.ct_fromEmit = false;
+        canvas.requestRenderAll();
+      } else {
+        drawnStore.updateOne(target);
+      }
     }
   }
 
   function handleObjRemoved(e: fabric.IEvent<MouseEvent>) {
+    console.log('canvas-removed-obj');
+
     if (!canvas) return;
-    let target = e.target as DrawnObjectType;
+    let target = e.target as CanvasObjectType;
+
+    drawnStore.removeOne(target);
 
     if (target.removedType !== 'byGroup') {
-      drawnStore.removeOne(target.toDatalessObject(['id']));
+      // drawnStore.removeOne(target);
     }
   }
 
@@ -286,6 +349,22 @@ export default function Canvas({ paperId }: Props) {
           onClick={(e) => {
             console.log(socket);
             if (!canvas) return;
+
+            console.log(drawnStore.drawnObjList);
+
+            let list = drawnStore.drawnObjList.map((item) =>
+              JSON.parse(item.value),
+            );
+            let objs = list.map((item) => {
+              return convertDataLessToCanvasObj(item);
+            });
+
+            objs.map((item) => {
+              if (!item) return;
+              canvas.add(item);
+              canvas.requestRenderAll();
+            });
+
             // const vtf = canvas?.viewportTransform;
             // let x = 0;
             // let y = 0;

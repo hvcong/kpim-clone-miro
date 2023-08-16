@@ -1,5 +1,5 @@
 import { fabric } from 'fabric';
-import { DrawnObjectType } from '@/store/drawn_object_store';
+import { CanvasObjectType } from '@/store/drawn_object_store';
 import { uuid } from '.';
 export const LabeledRect = fabric.util.createClass(fabric.Rect, {
   type: 'labeledRect',

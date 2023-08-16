@@ -1,7 +1,7 @@
 import { EnumType } from 'typescript';
 import { create } from 'zustand';
 import { fabric } from 'fabric';
-import { Paper } from '@/types/types';
+import { Member, MousePointer, Paper } from '@/types/types';
 import useSocketIoStore from './socketio_store';
 
 type RightSideBarType = 'comment' | 'message' | string;
@@ -9,7 +9,7 @@ type LeftSideBarType = 'frame' | 'history' | string;
 
 type PaperStateType = {
   paper: Paper | null;
-  memberOnlineList: string[];
+  memberOnlineList: Member[];
   //server state
   isSaving: boolean;
   isSaved: boolean;
@@ -42,10 +42,12 @@ type PaperStateType = {
   resetPaperState: () => void;
   emit_updatePaperName: (name: string) => void;
 
+  emit_memberMouseMoving: (pointer: MousePointer) => void;
+
   on_updatePaperName: (name: string) => void;
-  on_setListMemberOnline: (list: string[]) => void;
-  on_addOneMemberOnline: (userId: string) => void;
-  on_removeOneMemberOnline: (user: string) => void;
+  on_setListMemberOnline: (list: Member[]) => void;
+  on_addOneMemberOnline: (member: Member) => void;
+  on_removeOneMemberOnline: (userId: string) => void;
 };
 
 const initPaperState = {
@@ -69,7 +71,7 @@ const initPaperState = {
   showPaperDetailModal: false,
 };
 
-const usePaperStore = create<PaperStateType>((set) => ({
+const usePaperStore = create<PaperStateType>((set, get) => ({
   ...initPaperState,
   //
 
@@ -132,23 +134,28 @@ const usePaperStore = create<PaperStateType>((set) => ({
     });
   },
 
-  on_setListMemberOnline: (list) => {
+  on_setListMemberOnline: async (list: Member[]) => {
     set(({ memberOnlineList }) => ({
       memberOnlineList: list,
     }));
   },
-  on_addOneMemberOnline: (userId) => {
+  on_addOneMemberOnline: (member) => {
     set(({ memberOnlineList }) => ({
-      memberOnlineList: [...memberOnlineList, userId],
+      memberOnlineList: [...memberOnlineList, member],
     }));
   },
-  on_removeOneMemberOnline: (userId) => {
-    set(({ memberOnlineList }) => ({
-      memberOnlineList: memberOnlineList.filter((id) => id !== userId),
-    }));
+  on_removeOneMemberOnline: (userId: string) => {
+    set(({ memberOnlineList }) => {
+      console.log(memberOnlineList);
+      return {
+        memberOnlineList: memberOnlineList.filter(
+          (item) => item.User.id !== userId,
+        ),
+      };
+    });
   },
 
-  //socket
+  //emit
   emit_updatePaperName(name = 'Untitled') {
     const { socket } = useSocketIoStore.getState();
     if (!socket) return;
@@ -163,6 +170,12 @@ const usePaperStore = create<PaperStateType>((set) => ({
         },
       };
     });
+  },
+  emit_memberMouseMoving(pointer) {
+    const { socket } = useSocketIoStore.getState();
+    if (!socket) return;
+
+    socket.volatile.emit('member:mouse_moving', { pointer });
   },
 }));
 

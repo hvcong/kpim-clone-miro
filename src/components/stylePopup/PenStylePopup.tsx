@@ -2,6 +2,7 @@ import React from 'react';
 import StrokeWidthRange from './StrokeWidthRange';
 import ColorPickerList from './ColorPickerList';
 import useToolStore from '@/store/tool_store';
+import { useState } from 'react';
 
 type Props = {
   className: string;

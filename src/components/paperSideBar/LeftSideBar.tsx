@@ -6,7 +6,7 @@ import MessageList from './MessageList';
 import LeftMenuList from './LeftMenuList';
 import { FrameIcon, HistoryIcon } from '../svgs';
 import FrameList from './FrameList';
-import HistoryList from './HistoryList';
+import HistoryList from './changeLog/HistoryList';
 
 type Props = {};
 

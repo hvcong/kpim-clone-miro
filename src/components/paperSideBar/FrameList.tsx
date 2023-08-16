@@ -19,10 +19,9 @@ export default function FrameList({}: Props) {
   const { setLeftSideBarType } = usePaperStore();
   const [styleListShow, setStyleListShow] =
     useState<StyleListShowType>('short');
+  const { drawnObjList } = useDrawnStore();
 
-  const { drawnObjectList } = useDrawnStore();
-
-  const frameList = drawnObjectList.filter((item) => item.type === 'frame');
+  const frameList: any[] = [];
 
   return (
     <div className="space-y-3 flex-1 overflow-y-hidden flex flex-col">

@@ -19,7 +19,7 @@ export default function StrokeWidthRange({
         value={value}
         onChange={(e) => {
           let value = Number(e.target.value || 0);
-          console.log(value);
+          if (value === 0) value = 1;
           handleRangeChange(value);
         }}
         className="w-full h-0.5 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"

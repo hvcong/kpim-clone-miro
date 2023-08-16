@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { ThreeDotsIcon } from '../svgs';
 import { StyleListShowType } from './FrameList';
-import { DrawnObjectType } from '@/store/drawn_object_store';
+import { CanvasObjectType } from '@/store/drawn_object_store';
 
 type Props = {
   index: number;
   active: boolean;
-  data: DrawnObjectType;
+  data: CanvasObjectType;
   setActive: () => void;
   styleListShow: StyleListShowType;
 };

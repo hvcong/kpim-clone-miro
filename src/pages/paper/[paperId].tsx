@@ -12,7 +12,7 @@ import RightSideBar from '@/components/paperSideBar/RightSideBar';
 import PaperDetailModal from '@/components/topmenu/PaperDetailModal';
 import LeftSideBar from '@/components/paperSideBar/LeftSideBar';
 import StyleBar from '@/components/paper/bars/StyleBar';
-import useDrawnStore, { DrawnObjectType } from '@/store/drawn_object_store';
+import useDrawnStore, { CanvasObjectType } from '@/store/drawn_object_store';
 import RequireAuth from '@/components/requireAuth';
 import { useRouter } from 'next/router';
 import { useQuery } from 'react-query';
@@ -22,6 +22,8 @@ import { BASE_URL } from '@/api/axiosClient';
 import { canvasHandler } from '@/handler/canvasHandler';
 import { browserStore } from '@/utils';
 import useSocketIoStore from '@/store/socketio_store';
+import MemberCursorList from '@/components/paper/MemberCursorList';
+import useToolStore from '@/store/tool_store';
 
 type Props = {};
 
@@ -32,9 +34,10 @@ async function getPaperById(paperId: string) {
 function Paper({}: Props) {
   const { canvas, setCanvas, setPaper, resetPaperState, paper } =
     usePaperStore();
-  const { resetDrawnState, setDrawnObjectList } = useDrawnStore();
   const { setFullLoading } = useGlobalStore();
   const { setSocket } = useSocketIoStore();
+  const { resetDrawnState } = useDrawnStore();
+  const { resetToolStore } = useToolStore();
 
   const router = useRouter();
   const paperId = router.query.paperId as string;
@@ -68,6 +71,7 @@ function Paper({}: Props) {
       setCanvas(null);
       resetDrawnState();
       resetPaperState();
+      resetToolStore();
     };
   }, []);
 
@@ -103,6 +107,7 @@ function Paper({}: Props) {
       <RightSideBar />
       <LeftSideBar />
       <StyleBar />
+      <MemberCursorList />
     </div>
   );
 }
