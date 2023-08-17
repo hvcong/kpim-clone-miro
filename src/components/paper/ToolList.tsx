@@ -5,9 +5,11 @@ import useToolStore from '@/store/tool_store';
 import ShapePopup from './ShapePopup';
 import PenPopup from './PenPopup';
 import { uuid } from '@/utils';
-import useDrawnStore, { CanvasObjectType } from '@/store/drawn_object_store';
+import useDrawnStore from '@/store/drawn_object_store';
 import { ChatIcon, FrameIcon } from '../svgs';
 import { Frame } from '@/utils/customFabricClass';
+import { CanvasObjectType } from '@/types/types';
+import useTemplateStore from '@/store/template_store';
 
 type Props = {};
 
@@ -15,7 +17,8 @@ type PopupKeyType = 'shape' | 'pen' | 'comment' | '';
 
 export default function ToolList({}: Props) {
   const { canvas } = usePaperStore();
-  const { tool, setTool, shapeType, penStyle, penType } = useToolStore();
+  const { tool, setTool, shapeType } = useToolStore();
+  const templateStore = useTemplateStore();
   const { updateOne } = useDrawnStore();
   const { scale } = usePaperStore();
 
@@ -132,7 +135,7 @@ export default function ToolList({}: Props) {
       const pointer = canvas.getPointer(options.e);
       const x = pointer.x;
       const y = pointer.y;
-      let shape: CanvasObjectType | fabric.Object | null = null;
+      let shape: fabric.Object | null = null;
 
       if (shapeType === 'rectangle') {
         shape = new fabric.Rect({
@@ -164,12 +167,13 @@ export default function ToolList({}: Props) {
         });
       }
       if (shape) {
-        shape.set({
+        let _shape = shape as CanvasObjectType;
+        _shape.set({
           id: uuid(),
         });
 
-        canvas.add(shape);
-        canvas.setActiveObject(shape);
+        canvas.add(_shape);
+        canvas.setActiveObject(_shape);
 
         isDrawing = true;
       }
@@ -276,14 +280,7 @@ export default function ToolList({}: Props) {
       <div
         className={`ct-menu-item`}
         onClick={() => {
-          let stickyNote = new fabric.Textbox('', {
-            height: 100,
-            backgroundColor: 'red',
-            top: 200,
-            left: 200,
-          });
-          canvas?.add(stickyNote);
-          canvas?.requestRenderAll();
+          templateStore.setShowTemplateModal(true);
         }}
       >
         <svg

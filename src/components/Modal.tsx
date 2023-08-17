@@ -41,7 +41,7 @@ export default function Modal({ children, close, show }: Props) {
       ref={containerRef}
     >
       <div className="h-full w-full flex justify-center items-center">
-        <button onClick={close}>close</button>
+        {/* <button onClick={close}>close</button> */}
         <div ref={contenRef}>{children}</div>
       </div>
     </div>

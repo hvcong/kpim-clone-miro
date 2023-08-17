@@ -24,6 +24,7 @@ import { browserStore } from '@/utils';
 import useSocketIoStore from '@/store/socketio_store';
 import MemberCursorList from '@/components/paper/MemberCursorList';
 import useToolStore from '@/store/tool_store';
+import TemplateModal from '@/components/templateModal/TemplateModal';
 
 type Props = {};
 
@@ -108,6 +109,7 @@ function Paper({}: Props) {
       <LeftSideBar />
       <StyleBar />
       <MemberCursorList />
+      <TemplateModal />
     </div>
   );
 }
