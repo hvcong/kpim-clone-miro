@@ -1,6 +1,7 @@
 import DashboardContent from '@/components/dashboard/DashboardContent';
 import Sidebar from '@/components/dashboard/Sidebar';
 import RequireAuth from '@/components/requireAuth';
+import TemplateModal from '@/components/templateModal/TemplateModal';
 
 type Props = {};
 

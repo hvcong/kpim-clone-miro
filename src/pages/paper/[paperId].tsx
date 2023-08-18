@@ -12,7 +12,7 @@ import RightSideBar from '@/components/paperSideBar/RightSideBar';
 import PaperDetailModal from '@/components/topmenu/PaperDetailModal';
 import LeftSideBar from '@/components/paperSideBar/LeftSideBar';
 import StyleBar from '@/components/paper/bars/StyleBar';
-import useDrawnStore, { CanvasObjectType } from '@/store/drawn_object_store';
+import useDrawnStore from '@/store/drawn_object_store';
 import RequireAuth from '@/components/requireAuth';
 import { useRouter } from 'next/router';
 import { useQuery } from 'react-query';
@@ -109,7 +109,6 @@ function Paper({}: Props) {
       <LeftSideBar />
       <StyleBar />
       <MemberCursorList />
-      <TemplateModal />
     </div>
   );
 }

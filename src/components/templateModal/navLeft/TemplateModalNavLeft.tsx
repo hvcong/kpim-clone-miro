@@ -3,41 +3,33 @@ import { useState } from 'react';
 
 type Props = {
   className: string;
+  itemActived: string;
+  setItemActived: (actived: string) => void;
 };
 
-export default function TemplateModalNavLeft({ className }: Props) {
-  const [itemActived, setItemActived] = useState('all');
+export default function TemplateModalNavLeft({
+  className,
+  itemActived,
+  setItemActived,
+}: Props) {
   return (
     <div className={className}>
       <div className="flex flex-col space-y-1">
         <div className="">
           <div
             className={`inline-block rounded-[32px] py-1 px-3 transition-all  cursor-pointer ${
-              itemActived === 'for-you'
+              itemActived === 'my-template'
                 ? 'text-white bg-blue-950'
                 : 'text-black bg-white hover:bg-gray-200'
             }`}
             onClick={() => {
-              setItemActived('for-you');
+              setItemActived('my-template');
             }}
           >
-            For you
+            My template
           </div>
         </div>
-        <div className="">
-          <div
-            className={`inline-block rounded-[32px] py-1 px-3 transition-all  cursor-pointer ${
-              itemActived === 'all'
-                ? 'text-white bg-blue-950'
-                : 'text-black bg-white hover:bg-gray-200'
-            }`}
-            onClick={() => {
-              setItemActived('all');
-            }}
-          >
-            All templates
-          </div>
-        </div>
+
         <div className="">
           <div
             className={`inline-block rounded-[32px] py-1 px-3 transition-all  cursor-pointer ${

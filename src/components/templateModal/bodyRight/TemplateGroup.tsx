@@ -1,12 +1,14 @@
 import React from 'react';
 import TemplateItem from './TemplateItem';
+import { TemplateType } from '@/types/types';
 
 type Props = {
   className: string;
   title: string;
+  list: TemplateType[];
 };
 
-export default function TemplateGroup({ className, title }: Props) {
+export default function TemplateGroup({ className, title, list }: Props) {
   return (
     <div className={className}>
       <div className="">
@@ -16,12 +18,15 @@ export default function TemplateGroup({ className, title }: Props) {
             See all
           </p>
         </div>
-        <div className="grid grid-cols-3 gap-4">
-          <TemplateItem />
-          <TemplateItem />
-          <TemplateItem />
-          <TemplateItem />
-        </div>
+        {list.length > 0 ? (
+          <div className="grid grid-cols-3 gap-4">
+            {list.map((item) => {
+              return <TemplateItem key={item.id} data={item} />;
+            })}
+          </div>
+        ) : (
+          <div className="">empty</div>
+        )}
       </div>
     </div>
   );

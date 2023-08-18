@@ -66,6 +66,7 @@ const useToolStore = create<ToolStateType & ToolActionType>((set, get) => ({
     let { penStyle } = get();
 
     let color = penStyle.color;
+    let width = penStyle.strokeWidth;
     if (penType === 'hightlight') {
       color = convertHexToRGBA(color, 50);
     } else if (penType === 'eraser') {

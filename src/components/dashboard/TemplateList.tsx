@@ -5,8 +5,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React from 'react';
-import { useMutation } from 'react-query';
-import ElementLoading from '../loading/ElementLoading';
+import { useMutation, useQuery } from 'react-query';
+import useTemplateStore from '@/store/template_store';
+import templateApi from '@/api/templateApi';
 
 type Props = {};
 
@@ -14,8 +15,17 @@ async function createNewPaper() {
   return paperApi.create();
 }
 
+export async function getTemplateList() {
+  return templateApi.getList();
+}
+
 export default function TemplateList({}: Props) {
   const router = useRouter();
+  const tmpStore = useTemplateStore();
+
+  const { data } = useQuery('get_template_list', getTemplateList);
+
+  const list = data?.data?.list || [];
 
   const newPaperMution = useMutation(createNewPaper, {
     onSuccess: ({ data }) => {
@@ -38,7 +48,13 @@ export default function TemplateList({}: Props) {
       <div className="bg-white rounded-md p-3">
         <div className="flex justify-between pb-2">
           <p className="font-semibold text-gray-700">Recommended templates</p>
-          <Link href="#" className="text-xs text-blue-500 hover:text-blue-600">
+          <Link
+            href="#"
+            className="text-xs text-blue-500 hover:text-blue-600"
+            onClick={() => {
+              tmpStore.setShowTemplateModal(true);
+            }}
+          >
             Show All
           </Link>
         </div>
@@ -71,33 +87,32 @@ export default function TemplateList({}: Props) {
             </div>
           </div>
           {/* item */}
-          {Array(6)
-            .fill(null)
-            .map((_, index) => {
-              return (
-                <div
-                  key={index}
-                  className={`group cursor-pointer 
+          {list.map((item, index) => {
+            if (index > 5) return null;
+            return (
+              <div
+                key={index}
+                className={`group cursor-pointer 
                   ${index === 2 && 'hidden sm:block'} 
                   
                   ${index === 3 && 'hidden lg:block'} 
                   ${index === 4 && 'hidden lg:block'}
                   ${index === 5 && 'hidden xl:block'} 
                   `}
-                >
-                  <div className="w-full h-20">
-                    <img
-                      alt="thumb"
-                      src="/thumb.png"
-                      className="rounded-md w-full h-full border group-hover:border-blue-500 transition-all"
-                    />
-                  </div>
-                  <div className="text-xs pt-1 font-semibold text-gray-600 group-hover:text-blue-500 transition-all">
-                    template {index}
-                  </div>
+              >
+                <div className="w-full h-20">
+                  <img
+                    alt="thumb"
+                    src="/thumb.png"
+                    className="rounded-md w-full h-full border group-hover:border-blue-500 transition-all"
+                  />
                 </div>
-              );
-            })}
+                <div className="text-xs pt-1 font-semibold text-gray-600 group-hover:text-blue-500 transition-all">
+                  {item.name}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

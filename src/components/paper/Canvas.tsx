@@ -262,9 +262,11 @@ export default function Canvas({ paperId }: Props) {
           ct_fromEmit: false,
         });
       } else {
-        target.set({
-          id,
-        });
+        if (!target.id) {
+          target.set({
+            id,
+          });
+        }
         drawnStore.addOne(target);
       }
       canvas.requestRenderAll();

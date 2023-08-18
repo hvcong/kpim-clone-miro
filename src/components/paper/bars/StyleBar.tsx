@@ -9,16 +9,19 @@ import usePaperStore from '@/store/paper_store';
 import { calcCoordSelection, uuid } from '@/utils';
 import React, { useEffect, useRef } from 'react';
 import { fabric } from 'fabric';
-import useDrawnStore, { CanvasObjectType } from '@/store/drawn_object_store';
+import useDrawnStore from '@/store/drawn_object_store';
 import StrokeWidthRange from '@/components/stylePopup/StrokeWidthRange';
 import PathStyleBar from './PathStyleBar';
 import ShapeStyleBar from './ShapeStyleBar';
 import WallIcon from './WallIcon';
+import MoreStypePopup from './MoreStypePopup';
+import { CanvasObjectType } from '@/types/types';
+import { useState } from 'react';
 
 type Props = {};
 
 /**
- * listCategory =
+ * listByCategory =
  * {
  * path:[item,...],
  * rect:[item,...]
@@ -28,9 +31,17 @@ type Props = {};
 export default function StyleBar({}: Props) {
   const { showStyleBar, canvas, setShowStyleBar } = usePaperStore();
   const { updateOne, removeOne, addOne } = useDrawnStore();
+  const [showMorePopup, setShowMorePopup] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      setShowMorePopup(false);
+    };
+  }, [showStyleBar]);
 
   if (!showStyleBar || !canvas) return null;
   let selectedList = canvas.getActiveObjects() as CanvasObjectType[];
+
   if (selectedList.length === 0) return null;
 
   // category
@@ -155,8 +166,6 @@ export default function StyleBar({}: Props) {
     canvas.requestRenderAll();
   }
 
-  if (!isShow) return null;
-
   function renderBody() {
     let typeObjList = Object.keys(listByCategory);
 
@@ -168,6 +177,7 @@ export default function StyleBar({}: Props) {
     }
   }
 
+  if (!isShow) return null;
   return (
     <div
       className="absolute"
@@ -204,8 +214,23 @@ export default function StyleBar({}: Props) {
           </>
         )}
         <WallIcon />
-        <div className="group h-10 w-10 flex justify-center items-center cursor-pointer transition-all">
-          <ThreeDotsIcon className="w-5 h-5 text-gray-600 group-hover:text-gray-800" />
+        <div className=" h-10 w-10 flex justify-center items-center cursor-pointer transition-all relative">
+          <div
+            onClick={(e) => {
+              setShowMorePopup(!showMorePopup);
+              e.stopPropagation();
+            }}
+          >
+            <ThreeDotsIcon className="w-5 h-5 text-gray-600 hover:text-gray-800" />
+          </div>
+          {showMorePopup && (
+            <MoreStypePopup
+              className="absolute left-full top-0 translate-x-0.5"
+              listByCategory={listByCategory}
+              
+              close={() => setShowMorePopup(false)}
+            />
+          )}
         </div>
       </div>
     </div>

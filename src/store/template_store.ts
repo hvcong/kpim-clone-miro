@@ -1,10 +1,16 @@
+import { CanvasObjectType } from '@/types/types';
 import { create } from 'zustand';
+import useSocketIoStore, { moreProperties } from './socketio_store';
+import { useMutation } from 'react-query';
 
 type TemplateType = {};
 
 type StateType = {
   templateList: TemplateType[];
   showTemplateModal: boolean;
+
+  isAdding: boolean;
+  isLoading: boolean;
 };
 
 type ActionType = {
@@ -14,7 +20,10 @@ type ActionType = {
 
 const initState: StateType = {
   templateList: [],
-  showTemplateModal: true,
+  showTemplateModal: false,
+
+  isAdding: false,
+  isLoading: false,
 };
 
 const useTemplateStore = create<StateType & ActionType>((set, get) => ({

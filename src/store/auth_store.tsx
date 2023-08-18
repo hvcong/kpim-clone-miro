@@ -1,13 +1,8 @@
 import authApi from '@/api/authApi';
+import { IUser } from '@/types/types';
 import { browserStore } from '@/utils';
 import { AxiosResponse } from 'axios';
 import { create } from 'zustand';
-
-export interface IUser {
-  id: string;
-  email: string;
-  username: string;
-}
 
 type AuthStateType = {
   user: IUser | null;

@@ -3,14 +3,32 @@ import TemplateGroup from './TemplateGroup';
 import { CloseIcon, SearchIcon } from '@/components/svgs';
 import TemplateSearchDropdown from './TemplateSearchDropdown';
 import { useState } from 'react';
+import { useQuery } from 'react-query';
+import { getTemplateList } from '@/components/dashboard/TemplateList';
 
 type Props = {
   className: string;
+  itemActived: string;
 };
 
-export default function TemplateModalRight({ className }: Props) {
+export default function TemplateModalRight({ className, itemActived }: Props) {
   const [inputFocused, setInputFocused] = useState(false);
   const [inputValue, setInputValue] = useState('');
+
+  const { data } = useQuery(
+    ['get_template_list', itemActived],
+    getTemplateList,
+  );
+
+  let list = data?.data?.list || [];
+
+  let title = '';
+
+  if (itemActived === 'my-template') title = 'My template';
+  if (itemActived === 'recent') title = 'Recent';
+  if (itemActived === 'popular') title = 'Popular';
+  if (itemActived === 'building-block') title = 'Building Blocks';
+
   return (
     <div className={className}>
       <div className="flex flex-col h-full">
@@ -47,8 +65,7 @@ export default function TemplateModalRight({ className }: Props) {
           </div>
         </div>
         <div className="flex-1 overflow-y-auto pl-3 pr-14">
-          <TemplateGroup className="" title="Popular" />
-          <TemplateGroup className="" title="Popular" />
+          <TemplateGroup className="" title={title} list={list} />
         </div>
       </div>
     </div>

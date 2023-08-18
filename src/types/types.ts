@@ -76,3 +76,19 @@ export type MousePointer = {
   x: number;
   y: number;
 };
+
+export type TemplateType = {
+  User: IUser;
+  category: string;
+  createdAt: string;
+  id: string;
+  name: string;
+  shareState: string;
+  updatedAt: string;
+};
+
+export interface IUser {
+  id: string;
+  email: string;
+  username: string;
+}
