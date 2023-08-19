@@ -19,12 +19,13 @@ import { useQuery } from 'react-query';
 import paperApi from '@/api/paperApi';
 import useGlobalStore from '@/store';
 import { BASE_URL } from '@/api/axiosClient';
-import { canvasHandler } from '@/handler/canvasHandler';
 import { browserStore } from '@/utils';
 import useSocketIoStore from '@/store/socketio_store';
 import MemberCursorList from '@/components/paper/MemberCursorList';
 import useToolStore from '@/store/tool_store';
 import TemplateModal from '@/components/templateModal/TemplateModal';
+import TemplateSaveModal from '@/components/template/TemplateSaveModal';
+import useTemplateStore from '@/store/template_store';
 
 type Props = {};
 
@@ -39,6 +40,7 @@ function Paper({}: Props) {
   const { setSocket } = useSocketIoStore();
   const { resetDrawnState } = useDrawnStore();
   const { resetToolStore } = useToolStore();
+  const { setSaveModalState } = useTemplateStore();
 
   const router = useRouter();
   const paperId = router.query.paperId as string;
@@ -73,6 +75,10 @@ function Paper({}: Props) {
       resetDrawnState();
       resetPaperState();
       resetToolStore();
+      setSaveModalState({
+        show: false,
+        list: [],
+      });
     };
   }, []);
 
@@ -109,6 +115,7 @@ function Paper({}: Props) {
       <LeftSideBar />
       <StyleBar />
       <MemberCursorList />
+      <TemplateSaveModal />
     </div>
   );
 }

@@ -8,6 +8,10 @@ type TemplateType = {};
 type StateType = {
   templateList: TemplateType[];
   showTemplateModal: boolean;
+  saveModalState: {
+    show: boolean;
+    list: CanvasObjectType[];
+  };
 
   isAdding: boolean;
   isLoading: boolean;
@@ -16,11 +20,19 @@ type StateType = {
 type ActionType = {
   setTemplateList: (list: TemplateType[]) => void;
   setShowTemplateModal: (show: boolean) => void;
+  setSaveModalState: (saveModalState: {
+    show: boolean;
+    list: CanvasObjectType[];
+  }) => void;
 };
 
 const initState: StateType = {
   templateList: [],
   showTemplateModal: false,
+  saveModalState: {
+    show: false,
+    list: [],
+  },
 
   isAdding: false,
   isLoading: false,
@@ -36,6 +48,11 @@ const useTemplateStore = create<StateType & ActionType>((set, get) => ({
   setShowTemplateModal(show) {
     set({
       showTemplateModal: show,
+    });
+  },
+  setSaveModalState(state) {
+    set({
+      saveModalState: state,
     });
   },
 }));

@@ -65,7 +65,7 @@ export default function HistotyItem({ data, siblingData }: Props) {
       <div className="flex justify-between text-gray-500  py-0.5 pl-6 hover:bg-gray-200 rounded px-2 transition-all cursor-pointer text-xs">
         <div className="">
           <div className="font-semibold">
-            {changeLogType + ' ' + drawnObjType}
+            {changeLogType.toLocaleLowerCase() + ' ' + drawnObjType}
           </div>
           {drawnObjType === 'frame' && (
             <div className="text italic border-l-2 border-gray-300 px-2 my-1">
@@ -74,7 +74,7 @@ export default function HistotyItem({ data, siblingData }: Props) {
           )}
         </div>
         <div className="text-xs flex py-1 ">
-          {changeLogType === 'delete' && (
+          {changeLogType === 'DELETE' && (
             <div className="px-2">
               <RestoreIcon className=" text-gray-500 h-4 w-4 hover:text-blue-600" />
             </div>

@@ -38,7 +38,7 @@ export type DrawnObject = {
   PaperId: string;
   ChangeLog: {
     id: string;
-    type: 'add' | 'update' | 'delete';
+    type: 'ADD' | 'UPDATE' | 'DELETE';
     createdAt: string;
     updatedAt: string;
     DrawnObjectId: string;
@@ -83,6 +83,7 @@ export type TemplateType = {
   createdAt: string;
   id: string;
   name: string;
+  description: string;
   shareState: string;
   updatedAt: string;
 };

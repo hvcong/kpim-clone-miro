@@ -1,8 +1,9 @@
 import templateApi from '@/api/templateApi';
+import TemplateSaveModal from '@/components/template/TemplateSaveModal';
 import useGlobalStore, { eToastType } from '@/store';
 import useTemplateStore from '@/store/template_store';
 import { CanvasObjectType } from '@/types/types';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useMutation } from 'react-query';
 
 type Props = {
@@ -20,34 +21,6 @@ export default function MoreStypePopup({
 }: Props) {
   const tmpStore = useTemplateStore();
   const { setBotoomToast } = useGlobalStore();
-
-  const { mutate: addTemplateMutate } = useMutation(
-    ({ list, name }: { list: CanvasObjectType[]; name: string }) => {
-      setBotoomToast('Saving...');
-      return templateApi.add(list, name);
-    },
-    {
-      onSuccess(data) {
-        setBotoomToast('Saved', 2000, eToastType.success);
-        console.log(data);
-      },
-      onError(error) {
-        setBotoomToast('Save error', 2000, eToastType.error);
-        console.log(error);
-      },
-    },
-  );
-
-  async function saveAsTemplate() {
-    let list: CanvasObjectType[] = [];
-    Object.keys(listByCategory).map((key) => {
-      list.push(...listByCategory[key]);
-    });
-    addTemplateMutate({
-      list,
-      name: 'template_name',
-    });
-  }
 
   // hide when click outside
   const containerRef = useRef<HTMLDivElement>(null);
@@ -93,7 +66,14 @@ export default function MoreStypePopup({
         <div
           className="flex justify-between group"
           onClick={() => {
-            saveAsTemplate();
+            let list: CanvasObjectType[] = [];
+            Object.keys(listByCategory).map((key) => {
+              list.push(...listByCategory[key]);
+            });
+            tmpStore.setSaveModalState({
+              show: true,
+              list,
+            });
           }}
         >
           <div className="group-hover:text-blue-500">Save as template</div>

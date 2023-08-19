@@ -125,12 +125,18 @@ const usePaperStore = create<PaperStateType>((set, get) => ({
   //on
   on_updatePaperName(name) {
     set(({ paper }) => {
-      return {
-        paper: {
-          ...paper,
-          name,
-        },
-      };
+      if (paper) {
+        return {
+          paper: {
+            ...paper,
+            name,
+          },
+        };
+      } else {
+        return {
+          paper: null,
+        };
+      }
     });
   },
 
@@ -163,12 +169,18 @@ const usePaperStore = create<PaperStateType>((set, get) => ({
     socket.emit('paper:update_name', name);
 
     set(({ paper }) => {
-      return {
-        paper: {
-          ...paper,
-          name,
-        },
-      };
+      if (paper) {
+        return {
+          paper: {
+            ...paper,
+            name,
+          },
+        };
+      } else {
+        return {
+          paper: null,
+        };
+      }
     });
   },
   emit_memberMouseMoving(pointer) {

@@ -11,10 +11,6 @@ import templateApi from '@/api/templateApi';
 
 type Props = {};
 
-async function createNewPaper() {
-  return paperApi.create();
-}
-
 export async function getTemplateList() {
   return templateApi.getList();
 }
@@ -27,18 +23,22 @@ export default function TemplateList({}: Props) {
 
   const list = data?.data?.list || [];
 
-  const newPaperMution = useMutation(createNewPaper, {
-    onSuccess: ({ data }) => {
-      let id = data.newPaper.id;
-
-      if (id) {
-        router.push('/paper/' + id);
-      }
+  const newPaperMution = useMutation(
+    ({ templateId }: { templateId?: string }) => {
+      return paperApi.create(templateId);
     },
-    onError: (err) => {
-      console.log(err);
+    {
+      onSuccess: ({ data }) => {
+        let id = data.newPaper.id;
+        if (id) {
+          router.push('/paper/' + id);
+        }
+      },
+      onError: (err) => {
+        console.log(err);
+      },
     },
-  });
+  );
 
   return (
     <div className="mt-6">
@@ -62,7 +62,7 @@ export default function TemplateList({}: Props) {
           <div
             className="group  flex-1  cursor-pointer"
             onClick={() => {
-              newPaperMution.mutate();
+              newPaperMution.mutate({});
             }}
           >
             <div className=" group w-full h-20 text-5xl flex justify-center items-center text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-all">
@@ -99,6 +99,11 @@ export default function TemplateList({}: Props) {
                   ${index === 4 && 'hidden lg:block'}
                   ${index === 5 && 'hidden xl:block'} 
                   `}
+                onClick={() => {
+                  newPaperMution.mutate({
+                    templateId: item.id,
+                  });
+                }}
               >
                 <div className="w-full h-20">
                   <img

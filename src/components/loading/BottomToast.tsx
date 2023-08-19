@@ -26,7 +26,7 @@ export default function BottomToast({}: Props) {
 
   if (!bottomToast.title) return;
   return (
-    <div className="fixed bottom-3 left-1/2 -translate-x-1/2">
+    <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-[60]">
       <div
         className={`text-sm px-3 py-1 rounded ${
           bottomToast.type === eToastType.fetching && 'bg-black text-white'

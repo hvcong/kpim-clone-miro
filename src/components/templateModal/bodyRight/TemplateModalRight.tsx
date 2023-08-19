@@ -3,8 +3,10 @@ import TemplateGroup from './TemplateGroup';
 import { CloseIcon, SearchIcon } from '@/components/svgs';
 import TemplateSearchDropdown from './TemplateSearchDropdown';
 import { useState } from 'react';
-import { useQuery } from 'react-query';
+import { useMutation, useQuery } from 'react-query';
 import { getTemplateList } from '@/components/dashboard/TemplateList';
+import paperApi from '@/api/paperApi';
+import { useRouter } from 'next/router';
 
 type Props = {
   className: string;
@@ -21,7 +23,6 @@ export default function TemplateModalRight({ className, itemActived }: Props) {
   );
 
   let list = data?.data?.list || [];
-
   let title = '';
 
   if (itemActived === 'my-template') title = 'My template';

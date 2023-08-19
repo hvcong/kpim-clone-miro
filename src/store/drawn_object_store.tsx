@@ -45,8 +45,6 @@ const useDrawnStore = create<StateType & ActionType>((set, get) => ({
     const { socket } = useSocketIoStore.getState();
     if (!socket) return;
 
-    let { drawnObjList } = get();
-
     let value = newObj.toDatalessObject(moreProperties);
 
     socket.emit(
@@ -55,6 +53,7 @@ const useDrawnStore = create<StateType & ActionType>((set, get) => ({
         value,
       },
       (data: DrawnObject) => {
+        let { drawnObjList } = get();
         set({
           drawnObjList: [data, ...drawnObjList],
         });
@@ -65,10 +64,10 @@ const useDrawnStore = create<StateType & ActionType>((set, get) => ({
     const { socket } = useSocketIoStore.getState();
     if (!socket) return;
 
-    let { drawnObjList } = get();
-
     socket.emit('drawn_obj:remove_one', obj.id, (data: DrawnObject) => {
+      let { drawnObjList } = get();
       let _list = drawnObjList.filter((item) => item.id !== data.id);
+      console.log(data.id);
       _list.unshift(data);
       set({
         drawnObjList: _list,
@@ -79,7 +78,6 @@ const useDrawnStore = create<StateType & ActionType>((set, get) => ({
   updateOne: (obj) => {
     const { socket } = useSocketIoStore.getState();
     if (!socket) return;
-    const { drawnObjList } = get();
 
     const canvasObj = obj.toDatalessObject(moreProperties);
 
@@ -87,6 +85,7 @@ const useDrawnStore = create<StateType & ActionType>((set, get) => ({
       'drawn_obj:update_one',
       canvasObj,
       function callback(data: DrawnObject) {
+        const { drawnObjList } = get();
         let _list = drawnObjList.filter((item) => item.id !== data.id);
         _list.unshift(data);
         set({

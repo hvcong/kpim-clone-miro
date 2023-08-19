@@ -10,9 +10,13 @@ class PaperApi {
     return axiosClient.get(url);
   }
 
-  create(): Promise<AxiosResponse<ResponseTypeCustom & { newPaper: Paper }>> {
+  create(
+    templateId?: string,
+  ): Promise<AxiosResponse<ResponseTypeCustom & { newPaper: Paper }>> {
     const url = 'paper/add';
-    return axiosClient.post(url);
+    return axiosClient.post(url, {
+      templateId,
+    });
   }
 
   getOneById(

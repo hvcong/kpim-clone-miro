@@ -19,25 +19,14 @@ import {
   Paper,
 } from '@/types/types';
 import useGlobalStore from '@/store';
-import socketHandler from '@/handler/socketHandler';
 import useSocketIoStore, { moreProperties } from '@/store/socketio_store';
 type Props = {
   paperId: string;
 };
-async function getAllDrawnObj(paperId: string) {
-  return await drawnObjApi.getAllByPaperId(paperId);
-}
 
 export default function Canvas({ paperId }: Props) {
-  const {
-    scale,
-    pointScale,
-    setScale,
-    canvas,
-    isSaving,
-    showStyleBar,
-    setShowStyleBar,
-  } = usePaperStore();
+  const { scale, pointScale, setScale, canvas, setShowStyleBar } =
+    usePaperStore();
   const toolStore = useToolStore();
 
   const drawnStore = useDrawnStore();
@@ -98,7 +87,7 @@ export default function Canvas({ paperId }: Props) {
     if (!canvas) return;
     let list = drawnStore.drawnObjList.map((item) => {
       let obj = JSON.parse(item.value);
-      if (item.ChangeLog.type === 'delete') {
+      if (item.ChangeLog.type === 'DELETE') {
         obj.visible = false;
       }
       return obj;
