@@ -52,8 +52,10 @@ function Paper({}: Props) {
         height: window.innerHeight,
         width: window.innerWidth,
         backgroundColor: '#f2f2f2',
-        // isDrawingMode: true,
         enableRetinaScaling: true,
+        fireRightClick: true, // <-- enable firing of right click events
+        fireMiddleClick: true, // <-- enable firing of middle click events
+        stopContextMenu: true,
       });
 
       setCanvas(newCanvas);
@@ -67,6 +69,9 @@ function Paper({}: Props) {
     }
     document.addEventListener('wheel', onScalePaper, {
       passive: false,
+    });
+    document.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
     });
 
     return () => {

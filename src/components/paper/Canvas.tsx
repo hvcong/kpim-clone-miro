@@ -34,12 +34,18 @@ export default function Canvas({ paperId }: Props) {
   const { setFullLoading } = useGlobalStore();
   const { socket, setSocket, ...socketIoStore } = useSocketIoStore();
 
+  const activedTranformViewPort = useRef<boolean>(false);
+  const mousePointRoot = useRef<{
+    clientX: number;
+    clientY: number;
+  }>({ clientX: 0, clientY: 0 });
+
   useEffect(() => {
     let paper = paperStore.paper;
     if (paper && canvas) {
       console.log('add event');
       setFullLoading(false);
-      // handleScale();
+      handleScale();
 
       canvas.on('object:added', handleAddedNewObject);
 
@@ -56,6 +62,8 @@ export default function Canvas({ paperId }: Props) {
       canvas.on('selection:cleared', handleSelectionCleared);
 
       canvas.on('mouse:move', handleMouseMove);
+      canvas.on('mouse:down', handleMouseDown);
+      canvas.on('mouse:up', handleMouseUp);
 
       // event delete by delete key
       document.addEventListener('keydown', deleteObjByKeyBoard);
@@ -74,6 +82,7 @@ export default function Canvas({ paperId }: Props) {
 
         canvas.off('selection:updated');
         canvas.off('selection:cleared');
+        canvas.off('mouse:down');
 
         document.removeEventListener('keydown', deleteObjByKeyBoard);
         canvas.clear();
@@ -89,6 +98,8 @@ export default function Canvas({ paperId }: Props) {
       let obj = JSON.parse(item.value);
       if (item.ChangeLog.type === 'DELETE') {
         obj.visible = false;
+      } else {
+        obj.visible = true;
       }
       return obj;
     });
@@ -105,6 +116,140 @@ export default function Canvas({ paperId }: Props) {
       canvas.add(item);
       canvas.requestRenderAll();
     });
+  }
+
+  function handleDrawGridLayout() {
+    if (!canvas) return null;
+
+    var scale = paperStore.getScale();
+    var grid = 200 * scale;
+    var canvasWidth = canvas.getWidth();
+    var canvasHeight = canvas.getHeight();
+    let vtf = canvas.viewportTransform;
+    if (!vtf) return;
+    let tfX = vtf[4];
+    let tfY = vtf[5];
+
+    let listLine = [];
+
+    let _list = canvas.getObjects().filter((item) => item.type === 'line');
+    canvas.remove(..._list);
+
+    // grid 1
+    for (var i = 0; i <= canvasWidth / grid; i++) {
+      let stroke = `rgba(0,0,0,${0.3})`;
+      let strokeWidth = 1 - 1 / 10;
+
+      let oLine: fabric.ILineOptions = {
+        type: 'line',
+        stroke,
+        strokeWidth,
+        selectable: false,
+        // visible: scale > 0.8 ? false : true,
+      };
+
+      let line = new fabric.Line(
+        [
+          (i * grid - tfX) / scale,
+          (0 - tfY) / scale,
+          (i * grid - tfX) / scale,
+          (canvasHeight - tfY) / scale,
+        ],
+        oLine,
+      );
+
+      listLine.push(line);
+
+      line = new fabric.Line(
+        [
+          (0 - tfX) / scale,
+          (i * grid - tfY) / scale,
+          (canvasWidth - tfX) / scale,
+          (i * grid - tfY) / scale,
+        ],
+        oLine,
+      );
+      listLine.push(line);
+    }
+
+    // grid 2
+    // grid = grid / 5;
+    // for (var i = 0; i < canvasWidth / grid; i++) {
+    //   let stroke = `rgba(0,0,0,${0.3})`;
+    //   let strokeWidth = 1 - 1 / 10;
+
+    //   let oLine: fabric.ILineOptions = {
+    //     type: 'line',
+    //     stroke,
+    //     strokeWidth,
+    //     selectable: false,
+    //     visible: scale > 3 ? false : true,
+    //   };
+
+    //   let line = new fabric.Line(
+    //     [
+    //       (i * grid - tfX) / scale,
+    //       (0 - tfY) / scale,
+    //       (i * grid - tfX) / scale,
+    //       (canvasHeight - tfY) / scale,
+    //     ],
+    //     oLine,
+    //   );
+
+    //   listLine.push(line);
+
+    //   line = new fabric.Line(
+    //     [
+    //       (0 - tfX) / scale,
+    //       (i * grid - tfY) / scale,
+    //       (canvasWidth - tfX) / scale,
+    //       (i * grid - tfY) / scale,
+    //     ],
+    //     oLine,
+    //   );
+    //   listLine.push(line);
+    // }
+
+    // // grid 3
+    // grid = grid / 5;
+    // for (var i = 0; i < canvasWidth / grid; i++) {
+    //   let stroke = `rgba(0,0,0,${0.3})`;
+    //   let strokeWidth = 1 - 1 / 10;
+
+    //   let oLine: fabric.ILineOptions = {
+    //     type: 'line',
+    //     stroke,
+    //     strokeWidth,
+    //     selectable: false,
+    //     visible: scale > 3 ? true : false,
+    //   };
+
+    //   let line = new fabric.Line(
+    //     [
+    //       (i * grid - tfX) / scale,
+    //       (0 - tfY) / scale,
+    //       (i * grid - tfX) / scale,
+    //       (canvasHeight - tfY) / scale,
+    //     ],
+    //     oLine,
+    //   );
+
+    //   listLine.push(line);
+
+    //   line = new fabric.Line(
+    //     [
+    //       (0 - tfX) / scale,
+    //       (i * grid - tfY) / scale,
+    //       (canvasWidth - tfX) / scale,
+    //       (i * grid - tfY) / scale,
+    //     ],
+    //     oLine,
+    //   );
+    //   listLine.push(line);
+    // }
+
+    canvas.add(...listLine);
+    canvas.requestRenderAll();
   }
 
   useEffect(() => {
@@ -137,6 +282,7 @@ export default function Canvas({ paperId }: Props) {
 
       socket.on('sv:drawn_obj:add', drawnStore.on_addOne);
       socket.on('sv:drawn_obj:remove_one', drawnStore.on_removeOne);
+      socket.on('sv:drawn_obj:remove_many', drawnStore.on_removeMany);
       socket.on('sv:drawn_obj:update_one', drawnStore.on_updateOne);
 
       socket.on('sv:paper:update_name', paperStore.on_updatePaperName);
@@ -193,8 +339,42 @@ export default function Canvas({ paperId }: Props) {
   }
 
   function handleMouseMove(e: fabric.IEvent<MouseEvent>) {
+    if (!canvas) return;
     const pointer = e.pointer as MousePointer;
-    paperStore.emit_memberMouseMoving(pointer);
+
+    if (activedTranformViewPort.current) {
+      // canvas.defaultCursor = 'grabbing';
+      const vtf = canvas.viewportTransform;
+
+      if (vtf) {
+        let scaleX = canvas.getZoom();
+        let scaleY = canvas.getZoom();
+        let tfX = vtf[4] + e.e.movementX;
+        let tfY = vtf[5] + e.e.movementY;
+        canvas.viewportTransform = [scaleX, 0, 0, scaleY, tfX, tfY];
+
+        canvas.requestRenderAll();
+      }
+    }
+
+    // paperStore.emit_memberMouseMoving(pointer);
+  }
+
+  function handleMouseDown(e: fabric.IEvent<MouseEvent>) {
+    if (!canvas) return;
+    if (e.button === 3) {
+      // when tranform viewport
+      activedTranformViewPort.current = true;
+      mousePointRoot.current.clientX = e.e.clientX;
+      mousePointRoot.current.clientY = e.e.clientY;
+    }
+  }
+  function handleMouseUp(e: fabric.IEvent<MouseEvent>) {
+    if (!canvas) return;
+    if (e.button === 3) {
+      // when tranform viewport
+      activedTranformViewPort.current = false;
+    }
   }
 
   function handleSelectionUpdated(e: fabric.IEvent<MouseEvent>) {
@@ -207,10 +387,18 @@ export default function Canvas({ paperId }: Props) {
     if (e.code === 'Delete') {
       const objectSelecteds = canvas.getActiveObjects();
       // canvas.remove(...objectSelecteds);
-      objectSelecteds.map((target) => {
-        target.visible = false;
-        canvas.fire('object:removed', { target });
-      });
+
+      if (objectSelecteds.length > 2) {
+        objectSelecteds.map((target) => {
+          target.visible = false;
+        });
+        canvas.fire('object:removed', { target: objectSelecteds });
+      } else {
+        objectSelecteds.map((target) => {
+          target.visible = false;
+          canvas.fire('object:removed', { target });
+        });
+      }
       canvas.discardActiveObject();
       canvas.requestRenderAll();
     }
@@ -220,6 +408,8 @@ export default function Canvas({ paperId }: Props) {
     if (!canvas || !socket) return;
     const target = e.target as CanvasObjectType;
     const id = uuid();
+
+    if (target.type === 'line') return;
 
     if (target.type === 'path' && !target.ct_fromEmit) {
       console.log(toolStore.getPenType());
@@ -232,19 +422,17 @@ export default function Canvas({ paperId }: Props) {
     if (target.removedType === 'byGroup') {
     } else if (target.type === 'group') {
     } else if (target.type === 'frame') {
-      let text = target.text as CanvasObjectType;
-      target.set({
-        id,
-      });
-
-      drawnStore.addOne(target);
-
-      text.set({
-        frameId: id,
-        isFrameLabel: true,
-      });
-      canvas.add(text);
-      canvas.requestRenderAll();
+      // let text = target.text as CanvasObjectType;
+      // target.set({
+      //   id,
+      // });
+      // drawnStore.addOne(target);
+      // text.set({
+      //   frameId: id,
+      //   isFrameLabel: true,
+      // });
+      // canvas.add(text);
+      // canvas.requestRenderAll();
     } else {
       if (target.ct_fromEmit) {
         target.set({
@@ -296,12 +484,13 @@ export default function Canvas({ paperId }: Props) {
     console.log('canvas-removed-obj');
 
     if (!canvas) return;
-    let target = e.target as CanvasObjectType;
+    let target = e.target as CanvasObjectType | CanvasObjectType[];
 
-    drawnStore.removeOne(target);
-
-    if (target.removedType !== 'byGroup') {
-      // drawnStore.removeOne(target);
+    // remove many objects || one object
+    if (Array.isArray(target)) {
+      drawnStore.removeMany(target);
+    } else {
+      drawnStore.removeOne(target);
     }
   }
 
@@ -313,6 +502,8 @@ export default function Canvas({ paperId }: Props) {
   function handleSelectionCreated(e: fabric.IEvent<MouseEvent>) {
     if (!e.selected) return;
     let coord = calcCoordSelection(e.selected);
+    console.log(e.selected[0]);
+
     setShowStyleBar(true);
   }
 
@@ -328,6 +519,8 @@ export default function Canvas({ paperId }: Props) {
   useEffect(() => {
     if (canvas) {
       canvas.zoomToPoint(pointScale, scale);
+
+      // handleDrawGridLayout();
     }
     return () => {};
   }, [scale, pointScale, canvas]);
@@ -338,23 +531,21 @@ export default function Canvas({ paperId }: Props) {
         <div
           className="bg-red-300 cursor-pointer p-2 m-1"
           onClick={(e) => {
-            console.log(socket);
             if (!canvas) return;
 
-            console.log(drawnStore.drawnObjList);
-
-            let list = drawnStore.drawnObjList.map((item) =>
-              JSON.parse(item.value),
-            );
-            let objs = list.map((item) => {
-              return convertDataLessToCanvasObj(item);
+            const rect = new fabric.Rect({
+              width: 100,
+              height: 100,
+              backgroundColor: 'green',
+              left: 100,
+              top: 100,
             });
-
-            objs.map((item) => {
-              if (!item) return;
-              canvas.add(item);
-              canvas.requestRenderAll();
+            canvas.absolutePan({
+              x: 100,
+              y: 100,
             });
+            canvas.add(rect);
+            canvas.requestRenderAll();
 
             // const vtf = canvas?.viewportTransform;
             // let x = 0;
@@ -403,9 +594,6 @@ export default function Canvas({ paperId }: Props) {
         >
           clear all
         </div>
-        {isSaving && (
-          <div className="bg-red-300 cursor-pointer p-2 m-1">Saving...</div>
-        )}
       </div> */}
     </>
   );

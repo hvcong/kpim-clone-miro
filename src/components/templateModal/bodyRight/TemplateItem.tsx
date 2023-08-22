@@ -65,7 +65,8 @@ export default function TemplateItem({ data }: Props) {
           canvas: canvas,
         });
         canvas.setActiveObject(activedObj);
-        setBotoomToast('Success', 2000, eToastType.success);
+        setBotoomToast('Success!', 2000, eToastType.success);
+        setShowTemplateModal(false);
       },
       onError(error) {
         setBotoomToast('Error!', 2000, eToastType.error);

@@ -11,9 +11,9 @@ export function calcCoordSelection(selected: fabric.Object[]) {
   let obj = selected[0] as fabric.Object;
 
   if (selected.length > 1) {
-    coord = obj.group?.aCoords;
+    coord = obj.group?.oCoords;
   } else {
-    coord = obj.aCoords;
+    coord = obj.oCoords;
   }
   return coord;
 }

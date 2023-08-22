@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { UseBoundStore, StoreApi } from 'zustand';
 import usePaperStore from './paper_store';
 import { useMutation } from 'react-query';
-import useGlobalStore from '.';
+import useGlobalStore, { eToastType } from '.';
 import useSocketIoStore, { moreProperties } from './socketio_store';
 import { convertDataLessToCanvasObj } from '@/utils';
 import { Socket } from 'socket.io-client';
@@ -18,10 +18,12 @@ type ActionType = {
   setDrawnObjList: (drawnObjList: DrawnObject[]) => void;
   addOne: (newObj: CanvasObjectType) => void;
   removeOne: (obj: CanvasObjectType) => void;
+  removeMany: (list: CanvasObjectType[]) => void;
   updateOne: (obj: CanvasObjectType) => void;
   on_addOne: (newObj: DrawnObject) => void;
   on_removeOne: (obj: DrawnObject) => void;
   on_updateOne: (obj: DrawnObject) => void;
+  on_removeMany: (list: DrawnObject[]) => void;
 };
 
 const initState = {
@@ -67,12 +69,44 @@ const useDrawnStore = create<StateType & ActionType>((set, get) => ({
     socket.emit('drawn_obj:remove_one', obj.id, (data: DrawnObject) => {
       let { drawnObjList } = get();
       let _list = drawnObjList.filter((item) => item.id !== data.id);
-      console.log(data.id);
       _list.unshift(data);
       set({
         drawnObjList: _list,
       });
     });
+  },
+  removeMany(list) {
+    const { socket } = useSocketIoStore.getState();
+    if (!socket) return;
+    let { setBotoomToast } = useGlobalStore.getState();
+
+    setBotoomToast('Removing...');
+
+    socket.emit(
+      'drawn_obj:remove_many',
+      list.map((item) => item.id),
+      (data: DrawnObject[] | null) => {
+        let { drawnObjList } = get();
+
+        if (!data) {
+          setBotoomToast('Have an error', 2000, eToastType.error);
+        } else {
+          let _list = drawnObjList.filter((item) => {
+            let isExist = false;
+            data.map((_item) => {
+              if (_item.id === item.id) isExist = true;
+            });
+
+            return !isExist;
+          });
+          _list.unshift(...data);
+          set({
+            drawnObjList: _list,
+          });
+          setBotoomToast('');
+        }
+      },
+    );
   },
 
   updateOne: (obj) => {
@@ -169,6 +203,48 @@ const useDrawnStore = create<StateType & ActionType>((set, get) => ({
         drawnObjList: _list,
       });
     }
+  },
+  on_removeMany(updatedList) {
+    console.log(updatedList.map((item) => item.ChangeLog.type));
+
+    const { canvas } = usePaperStore.getState();
+    const { socket } = useSocketIoStore.getState();
+    if (!canvas || !socket) return;
+
+    let allCanvasObj = canvas.getObjects() as CanvasObjectType[];
+    let targetList =
+      allCanvasObj.filter((item) => {
+        let isExist = false;
+        updatedList.map((_item) => {
+          if (_item.id === item.id) isExist = true;
+        });
+
+        return isExist;
+      }) || [];
+
+    targetList.map((target) => {
+      target.visible = false;
+    });
+    canvas.requestRenderAll();
+
+    // update state
+    let { drawnObjList } = get();
+    console.log('before:', drawnObjList.length, updatedList.length);
+
+    let _list = drawnObjList.filter((item) => {
+      let isExist = false;
+      updatedList.map((_itemUpdated) => {
+        if (_itemUpdated.id === item.id) isExist = true;
+      });
+
+      return !isExist;
+    });
+
+    _list.unshift(...updatedList);
+    console.log('after:', _list.length);
+    set({
+      drawnObjList: _list,
+    });
   },
 }));
 

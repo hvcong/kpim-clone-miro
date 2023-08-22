@@ -54,9 +54,9 @@ export default function StyleBar({}: Props) {
     }
     listByCategory[type].push(item);
   });
-
   // calc coord
   let coord = calcCoordSelection(selectedList);
+
   let isLocked = false;
   let isShow = true;
 
@@ -72,8 +72,8 @@ export default function StyleBar({}: Props) {
 
   if (!coord) return null;
 
-  let top = (coord?.tl.y || 0) - 100;
-  let left = coord?.tl.x || 0;
+  let top = (coord?.mt.y || 0) - 100;
+  let left = coord?.mt.x || 0;
 
   if (top < 64) top = 64;
   if (top > window.innerHeight - 64) top = window.innerHeight - 64;
@@ -227,7 +227,6 @@ export default function StyleBar({}: Props) {
             <MoreStypePopup
               className="absolute left-full top-0 translate-x-0.5"
               listByCategory={listByCategory}
-              
               close={() => setShowMorePopup(false)}
             />
           )}

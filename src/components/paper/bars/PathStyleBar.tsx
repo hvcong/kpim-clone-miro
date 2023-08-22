@@ -70,7 +70,6 @@ export default function PathStyleBar({ listPaths }: Props) {
               setActiveColor(color);
               listPaths.map((path) => {
                 let _color = color;
-                console.log(path.ct_hightLightPen);
                 if (path.ct_hightLightPen) {
                   _color = convertHexToRGBA(color, 50);
                 }

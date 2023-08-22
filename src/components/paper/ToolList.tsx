@@ -18,6 +18,7 @@ type PopupKeyType = 'shape' | 'pen' | 'comment' | '';
 export default function ToolList({}: Props) {
   const { canvas } = usePaperStore();
   const { tool, setTool, shapeType } = useToolStore();
+  const paperStore = usePaperStore();
   const templateStore = useTemplateStore();
   const { updateOne } = useDrawnStore();
   const { scale } = usePaperStore();
@@ -65,6 +66,7 @@ export default function ToolList({}: Props) {
 
   function handleShapeDraw() {
     if (!canvas) return;
+    let startPoint: { x: number; y: number } | null = null;
 
     canvas.getObjects().map((obj) => {
       obj.selectable = false;
@@ -88,36 +90,59 @@ export default function ToolList({}: Props) {
 
     function mouseMove(options: fabric.IEvent<MouseEvent>) {
       if (!isDrawing || !canvas) return;
-      const pointer = options.pointer;
+      const pointer = canvas.getPointer(options.e);
+      if (!startPoint || !pointer) return;
 
       /**rectangle */
       if (shapeType === 'rectangle') {
         const rect = canvas.getActiveObject();
-        let width = (pointer?.x || 0) - (rect?.left || 0);
-        let height = (pointer?.y || 0) - (rect?.top || 0);
 
-        rect?.set({
-          width: width,
-          height: height,
-        });
+        let width = (pointer.x || 0) - (startPoint.x || 0);
+        let height = (pointer.y || 0) - (startPoint.y || 0);
+
+        if (width >= 0) {
+          rect?.set({
+            width: width,
+            height: height,
+          });
+        } else {
+          rect?.set({
+            left: startPoint.x + width,
+            width: -width,
+            height: height,
+          });
+        }
       }
 
       /**eclipse */
       if (shapeType == 'eclipse') {
         const eclipse = canvas.getActiveObject() as fabric.Ellipse;
-        let width = (pointer?.x || 0) - (eclipse.left || 0);
+        let width = (pointer?.x || 0) - (startPoint.x || 0);
+        let height = (pointer?.y || 0) - (startPoint.y || 0);
 
-        let height = (pointer?.y || 0) - (eclipse.top || 0);
+        if (width < 0 || height < 0) {
+          let left = startPoint.x;
+          let top = startPoint.y;
 
-        let rx = width / 2;
-        let ry = height / 2;
+          if (width < 0) {
+            left = left + width;
+          }
+
+          if (height < 0) {
+            top = top + height;
+          }
+
+          eclipse.set({
+            left,
+            top,
+          });
+        }
+
+        let rx = Math.abs(width / 2);
+        let ry = Math.abs(height / 2);
 
         if (options.e.shiftKey) {
           rx = ry = Math.max(rx, ry);
-        }
-
-        if (rx < 0 || ry < 0) {
-          return;
         }
 
         eclipse.set({
@@ -132,17 +157,20 @@ export default function ToolList({}: Props) {
 
     function mouseDown(options: fabric.IEvent<MouseEvent>) {
       if (!canvas) return;
+
       const pointer = canvas.getPointer(options.e);
+      startPoint = pointer;
       const x = pointer.x;
       const y = pointer.y;
+
       let shape: fabric.Object | null = null;
 
       if (shapeType === 'rectangle') {
         shape = new fabric.Rect({
           left: x,
           top: y,
-          width: 0,
-          height: 0,
+          width: 5,
+          height: 5,
           fill: 'transparent',
           stroke: 'black',
           strokeWidth: 1,
@@ -182,6 +210,7 @@ export default function ToolList({}: Props) {
     function mouseUp(options: fabric.IEvent<MouseEvent>) {
       if (!canvas) return;
       isDrawing = false;
+      startPoint = null;
       const shape = canvas.getActiveObject() as CanvasObjectType;
       if (shape) {
         shape.set({
@@ -221,12 +250,12 @@ export default function ToolList({}: Props) {
 
     function mouseDown(e: fabric.IEvent<MouseEvent>) {
       if (!canvas) return;
-      const pointer = e.pointer;
+      const pointer = canvas.getPointer(e.e);
 
       const textBox = new fabric.Textbox('', {
-        left: pointer?.x || 0,
-        top: pointer?.y || 0,
-        fontSize: 20,
+        left: pointer.x,
+        top: pointer.y,
+        fontSize: 20 / paperStore.getScale(),
       });
       canvas.add(textBox);
       canvas.setActiveObject(textBox);

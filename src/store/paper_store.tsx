@@ -33,6 +33,7 @@ type PaperStateType = {
 
   setShowStyleBar: (show: boolean) => void;
   setScale: (scale: number, x: number, y: number) => void;
+  getScale: () => number;
   setCanvas: (canvas: fabric.Canvas | null) => void;
   setRightSideBarType: (type: RightSideBarType) => void;
   setLeftSideBarType: (type: LeftSideBarType) => void;
@@ -81,9 +82,13 @@ const usePaperStore = create<PaperStateType>((set, get) => ({
       showStyleBar: show,
     });
   },
+  getScale: () => {
+    return get().scale;
+  },
   setScale: (scale, x, y) => {
     set({ scale: scale, pointScale: { x, y } });
   },
+
   setCanvas: (canvas: fabric.Canvas | null) => {
     set({
       canvas,
