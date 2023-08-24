@@ -21,6 +21,53 @@ export function WatchIcon({ className }: SvgProps) {
   );
 }
 
+export function UndoIcon({ className }: SvgProps) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      role="presentation"
+      focusable="false"
+      data-testid="svg-icon"
+    >
+      <g
+        xmlns="http://www.w3.org/2000/svg"
+        strokeWidth="2"
+        strokeLinecap="round"
+        stroke="currentColor"
+        fillRule="evenodd"
+        fill="none"
+      >
+        <path d="M5 14.5C8.5 8 17.5 8 20 15M9.018 15H4l.018-5"></path>
+      </g>
+    </svg>
+  );
+}
+
+export function ReUndoIcon({ className }: SvgProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      aria-hidden="true"
+      role="presentation"
+      focusable="false"
+      data-testid="svg-icon"
+    >
+      <g
+        xmlns="http://www.w3.org/2000/svg"
+        strokeWidth="2"
+        strokeLinecap="round"
+        stroke="currentColor"
+        fillRule="evenodd"
+        fill="none"
+      >
+        <path d="M19 14.5C15.5 8 6.5 8 4 15M14.982 15H20l-.018-5"></path>
+      </g>
+    </svg>
+  );
+}
 export function SearchIcon({ className }: SvgProps) {
   return (
     <svg

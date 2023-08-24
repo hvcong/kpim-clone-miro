@@ -9,6 +9,10 @@ export const moreProperties = [
   'frameLabel',
   'fromEmit',
   'ct_hightLightPen',
+  'zoomX',
+  'zoomY',
+  'scaleX',
+  'scaleY',
 ];
 
 type StateType = {

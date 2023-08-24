@@ -68,6 +68,7 @@ export default function PathStyleBar({ listPaths }: Props) {
             activedColor={activeColor}
             handlePick={(color) => {
               setActiveColor(color);
+              let id = '';
               listPaths.map((path) => {
                 let _color = color;
                 if (path.ct_hightLightPen) {
@@ -76,8 +77,16 @@ export default function PathStyleBar({ listPaths }: Props) {
                 path.set({
                   stroke: _color,
                 });
+                id = path.id;
                 canvas.requestRenderAll();
               });
+
+              canvas.fire('object:modified', {
+                target: {
+                  _objects: listPaths,
+                },
+              });
+
               setShowPickColor(false);
             }}
           />

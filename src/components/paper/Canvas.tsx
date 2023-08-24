@@ -49,7 +49,9 @@ export default function Canvas({ paperId }: Props) {
 
       canvas.on('object:added', handleAddedNewObject);
 
-      canvas.on('object:removed', handleObjRemoved);
+      canvas.on('object:added_many', handleObjAddedMany);
+
+      canvas.on('object:removed_many', handleObjRemovedMany);
 
       canvas.on('object:moving', handleObjMoving);
 
@@ -103,7 +105,6 @@ export default function Canvas({ paperId }: Props) {
       }
       return obj;
     });
-
     let objs = list.map((item) => {
       return convertDataLessToCanvasObj(item);
     });
@@ -284,6 +285,7 @@ export default function Canvas({ paperId }: Props) {
       socket.on('sv:drawn_obj:remove_one', drawnStore.on_removeOne);
       socket.on('sv:drawn_obj:remove_many', drawnStore.on_removeMany);
       socket.on('sv:drawn_obj:update_one', drawnStore.on_updateOne);
+      socket.on('sv:drawn_obj:update_many', drawnStore.on_updateMany);
 
       socket.on('sv:paper:update_name', paperStore.on_updatePaperName);
       socket.on('sv:paper:list_member', paperStore.on_setListMemberOnline);
@@ -386,18 +388,10 @@ export default function Canvas({ paperId }: Props) {
 
     if (e.code === 'Delete') {
       const objectSelecteds = canvas.getActiveObjects();
-      // canvas.remove(...objectSelecteds);
-
-      if (objectSelecteds.length > 2) {
-        objectSelecteds.map((target) => {
-          target.visible = false;
-        });
-        canvas.fire('object:removed', { target: objectSelecteds });
-      } else {
-        objectSelecteds.map((target) => {
-          target.visible = false;
-          canvas.fire('object:removed', { target });
-        });
+      if (objectSelecteds) {
+        canvas.remove(...objectSelecteds);
+        canvas.requestRenderAll();
+        canvas.fire('object:removed_many', { targetList: objectSelecteds });
       }
       canvas.discardActiveObject();
       canvas.requestRenderAll();
@@ -450,6 +444,8 @@ export default function Canvas({ paperId }: Props) {
     }
   }
 
+  function handleObjAddedMany(e: fabric.IEvent<Event>) {}
+
   function handleModified(e: fabric.IEvent<MouseEvent>) {
     if (!canvas) return;
     console.log('canvas-modified');
@@ -458,17 +454,11 @@ export default function Canvas({ paperId }: Props) {
       setShowStyleBar(true);
     }
     let target = e.target as CanvasObjectType;
-
     // change many object
-    if (target._objects) {
-      let list = target._objects || [];
-      list.map((item) => {
-        let target = item as CanvasObjectType;
-        if (target.ct_fromEmit) {
-          target.ct;
-        } else {
-        }
-      });
+    if (target && target._objects) {
+      let list = target._objects as CanvasObjectType[];
+      console.log(list[0]);
+      drawnStore.updateMany(list);
     } else {
       // change one object
       if (target.ct_fromEmit) {
@@ -480,18 +470,12 @@ export default function Canvas({ paperId }: Props) {
     }
   }
 
-  function handleObjRemoved(e: fabric.IEvent<MouseEvent>) {
+  function handleObjRemovedMany(_: fabric.IEvent<Event>) {
     console.log('canvas-removed-obj');
-
     if (!canvas) return;
-    let target = e.target as CanvasObjectType | CanvasObjectType[];
+    let options = _ as unknown as { targetList: CanvasObjectType[] };
 
-    // remove many objects || one object
-    if (Array.isArray(target)) {
-      drawnStore.removeMany(target);
-    } else {
-      drawnStore.removeOne(target);
-    }
+    drawnStore.removeMany(options.targetList);
   }
 
   function handleObjScaling(e: fabric.IEvent<MouseEvent>) {
@@ -502,7 +486,8 @@ export default function Canvas({ paperId }: Props) {
   function handleSelectionCreated(e: fabric.IEvent<MouseEvent>) {
     if (!e.selected) return;
     let coord = calcCoordSelection(e.selected);
-    console.log(e.selected[0]);
+    let item = e.selected[0];
+    console.log(item);
 
     setShowStyleBar(true);
   }

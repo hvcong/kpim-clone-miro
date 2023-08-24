@@ -53,7 +53,7 @@ const morePP = [
   'frameId',
   'isFrameLabel',
   'frameLabel',
-  'fromEmit',
+  'ct_fromEmit',
   'ct_hightLightPen',
 ] as const;
 type MorePropertiesType = (typeof morePP)[number];
