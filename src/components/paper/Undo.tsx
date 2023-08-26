@@ -10,6 +10,7 @@ export default function Undo({}: Props) {
   let canUndo: boolean = actionStore.currentIndex > -1;
   let canReUndo: boolean =
     actionStore.currentIndex < actionStore.actionList.length - 1;
+
   console.log(actionStore.actionList, actionStore.currentIndex);
 
   return (

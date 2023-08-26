@@ -26,6 +26,7 @@ import useToolStore from '@/store/tool_store';
 import TemplateModal from '@/components/templateModal/TemplateModal';
 import TemplateSaveModal from '@/components/template/TemplateSaveModal';
 import useTemplateStore from '@/store/template_store';
+import useActionHistory from '@/store/action_history';
 
 type Props = {};
 
@@ -40,6 +41,7 @@ function Paper({}: Props) {
   const { setSocket } = useSocketIoStore();
   const { resetDrawnState } = useDrawnStore();
   const { resetToolStore } = useToolStore();
+  const { reSetActionHistory } = useActionHistory();
   const { setSaveModalState } = useTemplateStore();
 
   const router = useRouter();
@@ -80,6 +82,8 @@ function Paper({}: Props) {
       resetDrawnState();
       resetPaperState();
       resetToolStore();
+      reSetActionHistory();
+
       setSaveModalState({
         show: false,
         list: [],

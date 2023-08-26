@@ -20,6 +20,7 @@ import {
 } from '@/types/types';
 import useGlobalStore from '@/store';
 import useSocketIoStore, { moreProperties } from '@/store/socketio_store';
+import useActionHistory, { eActionType } from '@/store/action_history';
 type Props = {
   paperId: string;
 };
@@ -28,7 +29,7 @@ export default function Canvas({ paperId }: Props) {
   const { scale, pointScale, setScale, canvas, setShowStyleBar } =
     usePaperStore();
   const toolStore = useToolStore();
-
+  const actionStore = useActionHistory();
   const drawnStore = useDrawnStore();
   const paperStore = usePaperStore();
   const { setFullLoading } = useGlobalStore();
@@ -50,18 +51,22 @@ export default function Canvas({ paperId }: Props) {
       canvas.on('object:added', handleAddedNewObject);
 
       canvas.on('object:added_many', handleObjAddedMany);
+      canvas.on('object:re_added_many', handleObjReAddedMany);
 
       canvas.on('object:removed_many', handleObjRemovedMany);
 
       canvas.on('object:moving', handleObjMoving);
 
       canvas.on('object:modified', handleModified);
+      canvas.on('object:re_modified_many', handleReModifiedMany);
 
       canvas.on('object:scaling', handleObjScaling);
 
       canvas.on('selection:created', handleSelectionCreated);
       canvas.on('selection:updated', handleSelectionUpdated);
       canvas.on('selection:cleared', handleSelectionCleared);
+
+      canvas.on('path:created', handleAddedPath);
 
       canvas.on('mouse:move', handleMouseMove);
       canvas.on('mouse:down', handleMouseDown);
@@ -74,17 +79,7 @@ export default function Canvas({ paperId }: Props) {
 
     return () => {
       if (canvas && paper) {
-        console.log('remove event');
-        canvas.off('object:added');
-        canvas.off('object:removed');
-        canvas.off('object:moving');
-        canvas.off('object:modified');
-        canvas.off('object:scaling');
-        canvas.off('selection:created');
-
-        canvas.off('selection:updated');
-        canvas.off('selection:cleared');
-        canvas.off('mouse:down');
+        canvas.removeListeners();
 
         document.removeEventListener('keydown', deleteObjByKeyBoard);
         canvas.clear();
@@ -96,15 +91,13 @@ export default function Canvas({ paperId }: Props) {
   function drawAll() {
     // just call this affter canvas listent all event
     if (!canvas) return;
-    let list = drawnStore.drawnObjList.map((item) => {
-      let obj = JSON.parse(item.value);
-      if (item.ChangeLog.type === 'DELETE') {
-        obj.visible = false;
-      } else {
-        obj.visible = true;
-      }
-      return obj;
-    });
+    let list = drawnStore.drawnObjList
+      .filter((item) => item.ChangeLog.type !== 'DELETE')
+      .map((item) => {
+        JSON.parse(item.value);
+
+        return JSON.parse(item.value);
+      });
     let objs = list.map((item) => {
       return convertDataLessToCanvasObj(item);
     });
@@ -113,7 +106,6 @@ export default function Canvas({ paperId }: Props) {
       if (!obj) return;
       let item = obj as CanvasObjectType;
 
-      item.ct_fromEmit = true;
       canvas.add(item);
       canvas.requestRenderAll();
     });
@@ -282,6 +274,7 @@ export default function Canvas({ paperId }: Props) {
       );
 
       socket.on('sv:drawn_obj:add', drawnStore.on_addOne);
+      socket.on('sv:drawn_obj:re_add_many', drawnStore.on_reAddMany);
       socket.on('sv:drawn_obj:remove_one', drawnStore.on_removeOne);
       socket.on('sv:drawn_obj:remove_many', drawnStore.on_removeMany);
       socket.on('sv:drawn_obj:update_one', drawnStore.on_updateOne);
@@ -391,7 +384,11 @@ export default function Canvas({ paperId }: Props) {
       if (objectSelecteds) {
         canvas.remove(...objectSelecteds);
         canvas.requestRenderAll();
-        canvas.fire('object:removed_many', { targetList: objectSelecteds });
+
+        canvas.fire('object:removed_many', {
+          targetList: objectSelecteds,
+          newAction: true,
+        });
       }
       canvas.discardActiveObject();
       canvas.requestRenderAll();
@@ -399,83 +396,162 @@ export default function Canvas({ paperId }: Props) {
   }
 
   function handleAddedNewObject(e: fabric.IEvent<MouseEvent>) {
-    if (!canvas || !socket) return;
-    const target = e.target as CanvasObjectType;
-    const id = uuid();
+    console.log('old-added');
+  }
+  function handleAddedPath(_: fabric.IEvent<MouseEvent>) {
+    if (!canvas) return;
+    let option = _ as unknown as { path: CanvasObjectType };
+    let newPath = option.path;
 
-    if (target.type === 'line') return;
-
-    if (target.type === 'path' && !target.ct_fromEmit) {
-      console.log(toolStore.getPenType());
-      if (toolStore.getPenType() === 'hightlight') {
-        target.ct_hightLightPen = true;
-      }
+    if (toolStore.getPenType() === 'hightlight') {
+      newPath.ct_hightLightPen = true;
     }
-
-    //
-    if (target.removedType === 'byGroup') {
-    } else if (target.type === 'group') {
-    } else if (target.type === 'frame') {
-      // let text = target.text as CanvasObjectType;
-      // target.set({
-      //   id,
-      // });
-      // drawnStore.addOne(target);
-      // text.set({
-      //   frameId: id,
-      //   isFrameLabel: true,
-      // });
-      // canvas.add(text);
-      // canvas.requestRenderAll();
-    } else {
-      if (target.ct_fromEmit) {
-        target.set({
-          ct_fromEmit: false,
-        });
-      } else {
-        if (!target.id) {
-          target.set({
-            id,
-          });
-        }
-        drawnStore.addOne(target);
-      }
-      canvas.requestRenderAll();
-    }
+    canvas.fire('object:added_many', {
+      targetList: [newPath],
+      newAction: true,
+    });
   }
 
-  function handleObjAddedMany(e: fabric.IEvent<Event>) {}
+  function handleObjAddedMany(_: fabric.IEvent<Event>) {
+    console.log('canvas-added-many-obj');
+    if (!canvas) return;
 
-  function handleModified(e: fabric.IEvent<MouseEvent>) {
+    const options = _ as unknown as {
+      targetList: CanvasObjectType[];
+      newAction: boolean;
+    };
+
+    const targetList = options.targetList;
+    const newAction = options.newAction;
+
+    for (let i = 0; i < targetList.length; i++) {
+      let target = targetList[i];
+
+      const id = uuid();
+
+      if (!target.id) {
+        target.set({
+          id,
+        });
+      }
+      drawnStore.addOne(target);
+    }
+
+    if (newAction) {
+      actionStore.addAction({
+        currentObjDataList: targetList.map((item) =>
+          item.toDatalessObject(moreProperties),
+        ),
+        actionType: eActionType.ADD,
+      });
+    }
+    canvas.requestRenderAll();
+  }
+
+  function handleObjReAddedMany(_: fabric.IEvent<Event>) {
+    console.log('canvas-re-added-many-obj');
+    if (!canvas) return;
+
+    const options = _ as unknown as {
+      targetList: CanvasObjectType[];
+    };
+
+    const targetList = options.targetList;
+    drawnStore.reAddMany(targetList);
+    canvas.requestRenderAll();
+  }
+
+  function handleModified(options: fabric.IEvent<MouseEvent>) {
     if (!canvas) return;
     console.log('canvas-modified');
 
     if (canvas?.getActiveObjects().length > 0) {
       setShowStyleBar(true);
     }
-    let target = e.target as CanvasObjectType;
+    let target = options.target as CanvasObjectType;
+
     // change many object
     if (target && target._objects) {
-      let list = target._objects as CanvasObjectType[];
-      console.log(list[0]);
-      drawnStore.updateMany(list);
-    } else {
-      // change one object
-      if (target.ct_fromEmit) {
-        target.ct_fromEmit = false;
-        canvas.requestRenderAll();
-      } else {
-        drawnStore.updateOne(target);
+      let targetList = target._objects as CanvasObjectType[];
+      const { drawnObjList } = useDrawnStore.getState();
+      const _prevList = drawnObjList.filter((item) => {
+        let isExist = false;
+        targetList.map((_item) => {
+          if (_item.id === item.id) isExist = true;
+        });
+        return isExist;
+      });
+      // re-calc dimension
+      let currentObjDataList = [];
+      let group = targetList[0].group;
+      if (group) {
+        currentObjDataList = targetList.map((_item) => {
+          return _item.toDatalessObject(moreProperties);
+        });
+
+        let groupTop = group.top || 0;
+        let groupLeft = group.left || 0;
+        let groupHeight = group.height || 0;
+        let groupWidth = group.width || 0;
+        for (let i = 0; i < currentObjDataList.length; i++) {
+          currentObjDataList[i].top =
+            groupTop + groupHeight / 2 + currentObjDataList[i].top;
+          currentObjDataList[i].left =
+            groupLeft + groupWidth / 2 + currentObjDataList[i].left;
+        }
       }
+
+      actionStore.addAction({
+        beforeObjDataList: _prevList.map((item) => JSON.parse(item.value)),
+        actionType: eActionType.UPDATE,
+        currentObjDataList: currentObjDataList,
+      });
+
+      drawnStore.updateMany(targetList);
+    } else {
+      const { drawnObjList } = useDrawnStore.getState();
+      let prevObj = drawnObjList.filter((item) => item.id === target.id)[0];
+
+      actionStore.addAction({
+        beforeObjDataList: [JSON.parse(prevObj.value)],
+        actionType: eActionType.UPDATE,
+        currentObjDataList: [target.toDatalessObject(moreProperties)],
+      });
+
+      drawnStore.updateOne(target);
     }
+  }
+
+  function handleReModifiedMany(_: fabric.IEvent<Event>) {
+    console.log('re-modified');
+    if (!canvas) return;
+    const options = _ as unknown as fabric.IEvent<Event> & {
+      targetList: CanvasObjectType[];
+    };
+
+    const targetList = options.targetList;
+
+    drawnStore.updateMany(targetList);
   }
 
   function handleObjRemovedMany(_: fabric.IEvent<Event>) {
     console.log('canvas-removed-obj');
     if (!canvas) return;
-    let options = _ as unknown as { targetList: CanvasObjectType[] };
+    let options = _ as unknown as {
+      targetList: CanvasObjectType[];
+      newAction: boolean;
+    };
+    const targetList = options.targetList;
+    if (options.newAction) {
+      actionStore.addAction({
+        currentObjDataList: targetList.map((item) =>
+          item.toDatalessObject(moreProperties),
+        ),
+        actionType: eActionType.DELETE,
+      });
+    }
 
-    drawnStore.removeMany(options.targetList);
+    drawnStore.removeMany(targetList);
   }
 
   function handleObjScaling(e: fabric.IEvent<MouseEvent>) {
@@ -498,7 +574,10 @@ export default function Canvas({ paperId }: Props) {
 
   function handleObjMoving(e: fabric.IEvent<MouseEvent>) {
     if (!canvas) return;
-    setShowStyleBar(false);
+    const { showStyleBar } = usePaperStore.getState();
+    if (showStyleBar) {
+      setShowStyleBar(false);
+    }
   }
 
   useEffect(() => {
@@ -509,6 +588,35 @@ export default function Canvas({ paperId }: Props) {
     }
     return () => {};
   }, [scale, pointScale, canvas]);
+
+  useEffect(() => {
+    function handleResizeScreen(e: UIEvent) {
+      if (canvas) {
+        canvas.setHeight(window.innerHeight);
+        canvas.setWidth(window.innerWidth);
+      }
+    }
+    window.addEventListener('resize', handleResizeScreen, true);
+
+    return () => {
+      window.removeEventListener('resize', handleResizeScreen);
+    };
+  }, [canvas]);
+
+  // show cursor of other users
+  useEffect(() => {
+    if (paperStore.showCursorPartner && canvas && socket) {
+      socket.on('sv:member:mouse_moving', (data) => {
+        console.log(data);
+      });
+    }
+
+    return () => {
+      if (paperStore.showCursorPartner && canvas && socket) {
+        socket.off('sv:member:mouse_moving');
+      }
+    };
+  }, [paperStore.showCursorPartner, canvas, socket]);
 
   return (
     <>

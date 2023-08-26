@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import usePaperStore from './paper_store';
 import { CanvasObjectType } from '@/types/types';
+import { convertDataLessToCanvasObj } from '@/utils';
+import useDrawnStore from './drawn_object_store';
+import { moreProperties } from './socketio_store';
 
 export enum eActionType {
   DELETE = 'DELETE',
@@ -13,9 +16,9 @@ export type CanvasObjectLessDataType = {
 } & fabric.Object;
 
 type ActionHistoryItemType = {
-  id: string;
-  canvasObjLessDataList: CanvasObjectLessDataType[];
+  beforeObjDataList?: CanvasObjectLessDataType[];
   actionType: eActionType;
+  currentObjDataList: CanvasObjectLessDataType[];
 };
 
 type State = {
@@ -27,6 +30,8 @@ type Actions = {
   addAction: (action: ActionHistoryItemType) => void;
   toUndoAction: () => void;
   toReUndoAction: () => void;
+  reSetActionHistory: () => void;
+  refreshActionWhenObjChangeByOtherUser: (objectIdList: string[]) => void;
 };
 
 const initState: State = {
@@ -59,7 +64,7 @@ const useActionHistory = create<State & Actions>((set, get) => ({
     let allCanvasObj = canvas.getObjects() as CanvasObjectType[];
     let targetList = allCanvasObj.filter((obj) => {
       let isExists = false;
-      action.canvasObjLessDataList.map((objLessData) => {
+      action.currentObjDataList.map((objLessData) => {
         if (obj.id === objLessData.id) {
           isExists = true;
         }
@@ -70,14 +75,46 @@ const useActionHistory = create<State & Actions>((set, get) => ({
     switch (action.actionType) {
       case eActionType.ADD:
         canvas.remove(...targetList);
-        canvas.fire('object:removed_many', { targetList });
         canvas.requestRenderAll();
+        canvas.fire('object:removed_many', { targetList });
         break;
 
       case eActionType.UPDATE:
+        if (!action.beforeObjDataList) return;
+
+        for (let i = 0; i < targetList.length; i++) {
+          const target = targetList[i];
+          action.beforeObjDataList.map((item) => {
+            if (target.id === item.id) {
+              target.set({
+                ...item,
+              });
+              target.setCoords();
+            }
+          });
+        }
+
+        canvas.requestRenderAll();
+        canvas.fire('object:re_modified_many', {
+          targetList: targetList,
+        });
         break;
 
       case eActionType.DELETE:
+        let { drawnObjList } = useDrawnStore.getState();
+        let _list: fabric.Object[] = [];
+        action.currentObjDataList.map((item) => {
+          let value: string = '';
+          drawnObjList.map((_item) => {
+            if (_item.id === item.id) value = _item.value;
+          });
+          let newCvObj = convertDataLessToCanvasObj(JSON.parse(value));
+          if (newCvObj) {
+            _list.push(newCvObj);
+          }
+        });
+        canvas.add(..._list);
+        canvas.fire('object:re_added_many', { targetList: _list });
         break;
     }
 
@@ -93,10 +130,12 @@ const useActionHistory = create<State & Actions>((set, get) => ({
     if (currentIndex > actionList.length - 1 || actionList.length === 0) return;
 
     let action = actionList[currentIndex + 1];
+
+    console.log(action);
     let allCanvasObj = canvas.getObjects() as CanvasObjectType[];
     let targetList = allCanvasObj.filter((obj) => {
       let isExists = false;
-      action.canvasObjLessDataList.map((objLessData) => {
+      action.currentObjDataList.map((objLessData) => {
         if (obj.id === objLessData.id) {
           isExists = true;
         }
@@ -106,23 +145,111 @@ const useActionHistory = create<State & Actions>((set, get) => ({
 
     switch (action.actionType) {
       case eActionType.ADD:
-        targetList.map((item) => {
-          item.visible = true;
+        let { drawnObjList } = useDrawnStore.getState();
+        let _list: fabric.Object[] = [];
+        action.currentObjDataList.map((item) => {
+          let value: string = '';
+          drawnObjList.map((_item) => {
+            if (_item.id === item.id) value = _item.value;
+          });
+          let newCvObj = convertDataLessToCanvasObj(JSON.parse(value));
+          if (newCvObj) {
+            _list.push(newCvObj);
+          }
         });
-
-        canvas.requestRenderAll();
-        canvas.fire('object:added', { target: targetList });
+        canvas.add(..._list);
+        canvas.fire('object:re_added_many', { targetList: _list });
         break;
 
       case eActionType.UPDATE:
+        for (let i = 0; i < targetList.length; i++) {
+          const target = targetList[i];
+          action.currentObjDataList.map((item) => {
+            if (target.id === item.id) {
+              target.set({
+                ...item,
+              });
+              target.setCoords();
+            }
+          });
+        }
+
+        canvas.requestRenderAll();
+        canvas.fire('object:re_modified_many', {
+          targetList: targetList,
+        });
         break;
 
       case eActionType.DELETE:
+        canvas.remove(...targetList);
+        canvas.fire('object:removed_many', { targetList });
+        canvas.requestRenderAll();
         break;
     }
 
     set({
       currentIndex: currentIndex + 1,
+    });
+  },
+  reSetActionHistory() {
+    set({
+      ...initState,
+    });
+  },
+  refreshActionWhenObjChangeByOtherUser(objectIdList) {
+    console.log('refresh', objectIdList);
+
+    const { actionList, currentIndex } = get();
+    if (actionList.length === 0) return;
+
+    let newActionList: ActionHistoryItemType[] = [];
+    let newIndex = currentIndex;
+    let currentAction: ActionHistoryItemType | null = null;
+    if (currentIndex >= 0) {
+      currentAction = actionList[currentIndex];
+    }
+
+    let _objectIdList = [...objectIdList];
+
+    actionList.map((action, index) => {
+      let currentObjDataList = action.currentObjDataList;
+      let isExist = false;
+
+      currentObjDataList.map((obj) => {
+        if (_objectIdList.includes(obj.id)) {
+          isExist = true;
+        }
+      });
+
+      if (isExist) {
+        _objectIdList.push(...currentObjDataList.map((obj) => obj.id));
+      }
+    });
+
+    actionList.map((action, index) => {
+      let currentObjDataList = action.currentObjDataList;
+      let isExist = false;
+
+      currentObjDataList.map((obj) => {
+        if (_objectIdList.includes(obj.id)) {
+          isExist = true;
+        }
+      });
+
+      if (isExist) {
+        if (index <= currentIndex) {
+          newIndex = newIndex - 1;
+        }
+      } else {
+        newActionList.push(action);
+      }
+    });
+
+    console.log('new', newActionList, newIndex);
+
+    set({
+      actionList: newActionList,
+      currentIndex: newIndex,
     });
   },
 }));

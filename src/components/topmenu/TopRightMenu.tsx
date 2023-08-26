@@ -18,6 +18,8 @@ type Props = {};
 export default function TopRightMenu({}: Props) {
   const paperStore = usePaperStore();
 
+  
+
   return (
     <div className=" bg-white rounded-md shadow-lg pointer-events-auto">
       <div className="h-11 flex items-center">

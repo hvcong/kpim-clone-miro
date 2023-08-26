@@ -169,8 +169,8 @@ export default function ToolList({}: Props) {
         shape = new fabric.Rect({
           left: x,
           top: y,
-          width: 5,
-          height: 5,
+          width: 10,
+          height: 10,
           fill: 'transparent',
           stroke: 'black',
           strokeWidth: 1,
@@ -219,7 +219,11 @@ export default function ToolList({}: Props) {
           hasBorders: true,
         });
 
-        updateOne(shape);
+        canvas.fire('object:added_many', {
+          targetList: [shape],
+          newAction: true,
+        });
+
         canvas.selection = true;
         canvas.requestRenderAll();
         setTool('default');
@@ -258,6 +262,11 @@ export default function ToolList({}: Props) {
         fontSize: 20 / paperStore.getScale(),
       });
       canvas.add(textBox);
+      canvas.fire('object:added_many', {
+        targetList: [textBox],
+        newAction: true,
+      });
+
       canvas.setActiveObject(textBox);
       textBox.enterEditing();
       textBox.hiddenTextarea?.focus();

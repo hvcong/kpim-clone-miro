@@ -52,12 +52,16 @@ export default function TemplateItem({ data }: Props) {
             let _item = item as CanvasObjectType;
             let id = uuid();
             _item.id = id;
-            canvas.add(_item);
-            console.log(_item);
+
             listObjs.push(_item);
-            canvas.requestRenderAll();
           }
         });
+        canvas.add(...listObjs);
+        canvas.fire('object:added_many', {
+          targetList: listObjs,
+          newAction: true,
+        });
+        canvas.requestRenderAll();
 
         //set actived object
         canvas.discardActiveObject(); // Clear any previously active objects
